@@ -42,7 +42,7 @@ function resizeAllCanvases() {
  * and then triggers a resize of all canvases.
  */
 
-function reDraw() {
+async function reDraw() {
     const container = document.getElementById('grid-container');
     if (!container) {
         console.error("Grid container not found.");
@@ -50,24 +50,48 @@ function reDraw() {
     }
 
     const aspectRatio = window.innerWidth / window.innerHeight;
-    const threshold = 1.0; // If width < height (aspect < 1.0), it's "tall"
+    const threshold = 1.0;
 
     container.classList.remove('layout-tall', 'layout-wide');
 
     let newLayoutClass = '';
-    if (aspectRatio < threshold) { 
+    if (aspectRatio < threshold) {
         newLayoutClass = 'layout-tall';
         benchOrientation = 'horizontal';
-    } else { 
+    } else {
         newLayoutClass = 'layout-wide';
         benchOrientation = 'vertical';
     }
     container.classList.add(newLayoutClass);
     console.log(`Applied layout: ${newLayoutClass} (Aspect Ratio: ${aspectRatio.toFixed(2)})`);
 
-    // Use requestAnimationFrame to ensure sizing happens after layout is applied
-    requestAnimationFrame(resizeAllCanvases);
+    return new Promise(resolve => {
+    requestAnimationFrame(() => {
+      const hexLocations = {
+        board: [],
+        bench1: [],
+        bench2: [],
+      };
+
+      document.querySelectorAll('canvas').forEach(canvas => {
+        if (canvas.offsetParent !== null && canvas.clientWidth > 0 && canvas.clientHeight > 0) {
+          sizeCanvas(canvas);
+
+          if (canvas.id === 'board-canvas') {
+            hexLocations.board = drawBoard(canvas, boardState, 1.0, true);
+          } else if (canvas.id === 'bench1-canvas') {
+            hexLocations.bench1 = drawBench(canvas, benchState1, 0.9, benchOrientation, true);
+          } else if (canvas.id === 'bench2-canvas') {
+            hexLocations.bench2 = drawBench(canvas, benchState2, 0.9, benchOrientation, true);
+          }
+        }
+      });
+
+      resolve(hexLocations); // <--- This line is required
+    });
+  });
 }
+
 
 function hexagon(canvasElement, x, y, apothem, borderColor, fillColor, rotation = 0) {
     const ctx = canvasElement.getContext('2d');
@@ -120,46 +144,32 @@ function drawBoard(canvasElement, state, scale = 1.0) {
 
     const canvasWidth = canvasElement.width;
     const canvasHeight = canvasElement.height;
-
     const rotation = Math.PI / 2;
     const rows = [4, 5, 6, 7, 6, 5, 4];
 
-    // Calculate base dimensions for scaling
-    // Assuming a base apothem of 40 (from original code)
-    const baseApothem = Math.min(canvasHeight/ 13, canvasWidth/14);
+    const baseApothem = Math.min(canvasHeight / 13, canvasWidth / 14);
     const baseSideLength = (2 * baseApothem) / Math.sqrt(3);
     const baseHexHorizontalSpacing = 2 * baseApothem;
     const baseHexVerticalStagger = baseSideLength * 1.5;
 
-    // Calculate max theoretical width and height of the board layout
     const maxRowLength = Math.max(...rows);
-    const theoreticalBoardWidth = (maxRowLength - 1) * baseHexHorizontalSpacing + (2 * baseApothem);
-    const theoreticalBoardHeight = (rows.length - 1) * baseHexVerticalStagger + (2 * baseSideLength); // Height includes top and bottom hexagon
-
-    // Apply the calculated scale to the apothem and spacing
     const apothem = baseApothem * scale;
     const sideLength = (2 * apothem) / Math.sqrt(3);
     const hexHorizontalSpacing = 2 * apothem;
     const hexVerticalStagger = sideLength * 1.5;
 
-    // Calculate the actual total width and height of the scaled board
     const actualBoardWidth = (maxRowLength - 1) * hexHorizontalSpacing + (2 * apothem);
     const actualBoardHeight = (rows.length - 1) * hexVerticalStagger + (2 * sideLength);
 
-
-    // Calculate initial X and Y to center the entire arrangement on the canvas
     const initialCenterX = canvasWidth / 2;
     const initialCenterY = canvasHeight / 2;
 
-    // The starting Y position for the first row, accounting for centering
-    let currentY = initialCenterY - (actualBoardHeight / 2) + apothem; // Add apothem to account for hexagon's top edge
-
+    let currentY = initialCenterY - (actualBoardHeight / 2) + apothem;
+    const hexLocations = [];
 
     let hexNum = 0;
     for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
         const numHexagonsInRow = rows[rowIndex];
-
-        // Calculate the start X for the current row to center it.
         const rowWidth = (numHexagonsInRow - 1) * hexHorizontalSpacing;
         let startX = initialCenterX - (rowWidth / 2);
         
@@ -168,13 +178,17 @@ function drawBoard(canvasElement, state, scale = 1.0) {
             const hexY = currentY;
 
             const [fillColor, borderColor] = getColors(state, hexNum);
-            
-            hexagon(canvasElement, hexX, hexY, apothem * .9, borderColor, fillColor, rotation);
+            hexagon(canvasElement, hexX, hexY, apothem * 0.9, borderColor, fillColor, rotation);
+
+            hexLocations.push({ x: hexX, y: hexY, apothem, rotation });
             hexNum++;
         }
         currentY += hexVerticalStagger;
     }
+
+    return hexLocations;
 }
+
 
 function drawBench(canvasElement, state, scale, orientation = 'horizontal') {
     const ctx = canvasElement.getContext('2d');
@@ -182,52 +196,65 @@ function drawBench(canvasElement, state, scale, orientation = 'horizontal') {
 
     const canvasWidth = canvasElement.width;
     const canvasHeight = canvasElement.height;
-    let baseApothem, hexVerticalSpacing, hexVHorizontalSpacing  = 0;
 
-    // Determine baseApothem based on orientation and canvas dimension
+    let baseApothem, hexHorizontalSpacing, hexVerticalSpacing;
     if (orientation === 'horizontal') {
-        baseApothem = Math.min(canvasHeight / 2.3, canvasWidth/15); // Scales apothem based on canvas height for horizontal
+        baseApothem = Math.min(canvasHeight / 2.3, canvasWidth / 15);
         hexHorizontalSpacing = canvasWidth / 8;
-        console.log('horizontal arrangement', hexVerticalSpacing);
-
     } else if (orientation === 'vertical') {
-        baseApothem = Math.min(canvasWidth / 2, canvasHeight/32); // Scales apothem based on canvas width for vertical
+        baseApothem = Math.min(canvasWidth / 2, canvasHeight / 32);
         hexVerticalSpacing = canvasHeight / 8;
-        console.log('vertical arrangement', hexVerticalSpacing );
-
     } else {
-        console.error("Invalid orientation specified for drawBench. Use 'horizontal' or 'vertical'.");
-        return; // Exit if orientation is invalid
+        console.error("Invalid orientation specified for drawBench.");
+        return [];
     }
-    const apothem = baseApothem * scale
-    const rotation = Math.PI / 2; // Hexagons rotated by 90 degrees
-    const sideLength = (2 * apothem) / Math.sqrt(3);
 
-    const numHexagons = state.length; // Should be 8 for the bench
+    const apothem = baseApothem * scale;
+    const sideLength = (2 * apothem) / Math.sqrt(3);
+    const rotation = Math.PI / 2;
+    const numHexagons = state.length;
+    const hexLocations = [];
 
     let startX, startY;
-
     if (orientation === 'horizontal') {
         const totalWidth = (numHexagons - 1) * hexHorizontalSpacing + (2 * apothem);
-        startX = (canvasWidth / 2) - (totalWidth / 2) + apothem; // Center horizontally
-        startY = canvasHeight / 2; // Center vertically
-        
+        startX = (canvasWidth / 2) - (totalWidth / 2) + apothem;
+        startY = canvasHeight / 2;
+
         for (let i = 0; i < numHexagons; i++) {
             const hexX = startX + i * hexHorizontalSpacing;
             const hexY = startY;
             const [fillColor, borderColor] = getColors(state, i);
-            hexagon(canvasElement, hexX, hexY, apothem * .9, borderColor, fillColor, rotation);
+            hexagon(canvasElement, hexX, hexY, apothem * 0.9, borderColor, fillColor, rotation);
+            hexLocations.push({ x: hexX, y: hexY, apothem, rotation });
         }
-    } else if (orientation === 'vertical') {
+    } else {
         const totalHeight = (numHexagons - 1) * hexVerticalSpacing + (2 * sideLength);
-        startX = canvasWidth / 2; // Center horizontally
-        startY = (canvasHeight / 2) - (totalHeight / 2) + sideLength; // Center vertically
-        
+        startX = canvasWidth / 2;
+        startY = (canvasHeight / 2) - (totalHeight / 2) + sideLength;
+
         for (let i = 0; i < numHexagons; i++) {
             const hexX = startX;
             const hexY = startY + i * hexVerticalSpacing;
             const [fillColor, borderColor] = getColors(state, i);
-            hexagon(canvasElement, hexX, hexY, apothem * .9, borderColor, fillColor, rotation);
+            hexagon(canvasElement, hexX, hexY, apothem * 0.9, borderColor, fillColor, rotation);
+            hexLocations.push({ x: hexX, y: hexY, apothem, rotation });
         }
     }
+
+    return hexLocations;
+}
+
+function drawHover(canvas, hex) {
+    reDraw().then(() => {
+        hexagon(
+            canvas,
+            hex.x,
+            hex.y,
+            hex.apothem * 0.95,
+            'rgba(0, 0, 0, 0.25)', // border
+            'rgba(0, 0, 0, 0.15)', // fill
+            hex.rotation
+        );
+    });
 }

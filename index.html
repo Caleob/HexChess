@@ -30,8 +30,36 @@
     <script src="HexFunctions.js" defer></script>
     <script>
         /**
-         * Sets the canvas drawing surface size to its displayed size (CSS pixels).
-         * @param {HTMLCanvasElement} canvasElement The canvas element to size.
+         * HexFunctions Module Summary
+         *
+         * PURPOSE:
+         * This module dynamically sizes and draws canvas elements representing a hexagonal game board and two player benches
+         * for a game rendered in HTML using `<canvas>`. It ensures visual responsiveness to window size and layout changes.
+         *
+         * REQUIRED INPUT:
+         * - HTML page containing canvas elements with IDs: 'board-canvas', 'bench1-canvas', 'bench2-canvas'.
+         * - Global board state array (`boardState`) and two bench arrays (`benchState1`, `benchState2`) with encoded cell types.
+         * - A global variable `benchOrientation` indicating 'horizontal' or 'vertical' layout.
+         *
+         * OUTPUT:
+         * - Dynamically resizes each canvas to match its visual CSS size.
+         * - Draws a hexagonal board and benches with color-coded hexes based on game state.
+         * - Responds to window resizing by adjusting layout and re-rendering canvases.
+         *
+         * FUNCTION SUMMARY:
+         * - `sizeCanvas(canvasElement)`: Sets a canvas’s internal pixel dimensions to match its rendered size.
+         * - `resizeAllCanvases()`: Applies `sizeCanvas` to all canvas elements and redraws them based on ID.
+         * - `reDraw()`: Adjusts the layout class on the grid container depending on aspect ratio, updates `benchOrientation`,
+         *   then schedules a canvas resize and redraw.
+         * - `hexagon(canvasElement, x, y, apothem, borderColor, fillColor, rotation)`: Draws a single regular hexagon at
+         *   (x, y) on the given canvas with specified size, border, fill, and rotation.
+         * - `getColors(boardState, hexNumber)`: Maps game state tokens to an RGB fill and border color pair.
+         * - `drawBoard(canvasElement, state, scale)`: Clears and redraws a central hexagon grid using `state` to determine colors.
+         * - `drawBench(canvasElement, state, scale, orientation)`: Clears and draws a row or column of hexagons based on player bench data.
+         *
+         * INTENDED USE:
+         * This script is used to render a visually adaptive game interface for a hex-based strategy game ("HexChess").
+         * It ensures the game board and bench areas maintain aspect-correct visuals across a variety of screen sizes.
          */
         let benchOrientation = 'horizontal';
 
@@ -48,11 +76,53 @@
         const benchState1 = ["P1","P1","P1","P1","P1","P1","P1","IM"];
         const benchState2 = ["P2","P2","P2","P2","P2","P2","P2","IM"];
 
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log("DOM fully loaded and parsed.");
-            reDraw(); 
-            window.addEventListener('resize', reDraw);
+        document.addEventListener('DOMContentLoaded', async () => {
+            const hexLocations = await reDraw();
+
+            const boardCanvas = document.getElementById('board-canvas');
+            setupHoverEffect(boardCanvas, hexLocations, 'board');
+
+            window.addEventListener('resize', async () => {
+                const newLocations = await reDraw();
+                Object.assign(hexLocations, newLocations);
+            });
         });
+
+        let currentHoveredHex = null;
+
+        function setupHoverEffect(canvas, hexLocations, layer = 'board') {
+            canvas.addEventListener('mousemove', event => {
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = event.clientX - rect.left;
+                const mouseY = event.clientY - rect.top;
+
+                const hexes = hexLocations[layer];
+                let foundHex = null;
+
+                for (let i = 0; i < hexes.length; i++) {
+                    const hex = hexes[i];
+                    const dx = hex.x - mouseX;
+                    const dy = hex.y - mouseY;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dist < hex.apothem) {
+                        foundHex = { ...hex, index: i };
+                        break;
+                    }
+                }
+
+                if (foundHex && (!currentHoveredHex || foundHex.index !== currentHoveredHex.index)) {
+                    currentHoveredHex = foundHex;
+                    drawHover(canvas, foundHex);
+                } else if (!foundHex && currentHoveredHex !== null) {
+                    currentHoveredHex = null;
+                    reDraw().then(newHexLocations => {
+                        Object.assign(hexLocations, newHexLocations);
+                    });
+                }
+            });
+        }
+
 
     </script>
 
