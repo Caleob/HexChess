@@ -42,9 +42,21 @@
         }
 
         #menu-item img {
-            height: 70%; /* Adjust icon size relative to menu height */
-            width: auto;
-            max-width: 23%; /* Ensure icons don't overflow */
+            /* Ensures smooth transition for scaling */
+            transition: transform 0.2s ease-in-out;
+            /* Optional: Make images behave like blocks for better control over spacing */
+            display: block;
+            /* Optional: Add some margin if desired for spacing between icons */
+            margin: 5px; /* Adjust as needed */
+            /* Ensure images have a defined size, for consistent scaling */
+            width: 50px; /* Example size, adjust to fit your design */
+            height: 50px; /* Example size, adjust to fit your design */
+            cursor: pointer; /* Indicates it's clickable */
+        }
+
+        #menu-item img:hover {
+            /* Scales the image up by 6% on hover */
+            transform: scale(1.06);
         }
 
         #board-item, .bench-item {
