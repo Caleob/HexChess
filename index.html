@@ -27,7 +27,7 @@
             <canvas id="bench2-canvas"></canvas>
         </div>
     </div>
-    <script src="HexFunctions.js" defer></script>
+    <script src="HexFunctions.js"></script>
     <script>
         /**
          * Sets the canvas drawing surface size to its displayed size (CSS pixels).
@@ -48,38 +48,7 @@
         const benchState1 = ["P1","P1","P1","P1","P1","P1","P1","IM"];
         const benchState2 = ["P2","P2","P2","P2","P2","P2","P2","IM"];
 
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log("DOM fully loaded and parsed.");
-            reDraw(); 
-            window.addEventListener('resize', reDraw);
-
-            // --- Event Listeners for Menu Icons ---
-            // Get all image elements within the menu item div
-            const menuIcons = document.querySelectorAll('#menu-item img');
-
-            // Hardcoded event listeners for each icon
-            if (menuIcons[0]) {
-                menuIcons[0].addEventListener('click', () => {
-                    alert('I just clicked the Concede icon!');
-                });
-            }
-            if (menuIcons[1]) {
-                menuIcons[1].addEventListener('click', () => {
-                    alert('I just clicked the New Game icon!');
-                });
-            }
-            if (menuIcons[2]) {
-                menuIcons[2].addEventListener('click', () => {
-                    alert('I just clicked the Rules icon!');
-                });
-            }
-            if (menuIcons[3]) {
-                menuIcons[3].addEventListener('click', () => {
-                    alert('I just clicked the Chat icon!');
-                });
-            }
-            // --- End Event Listeners ---
-        });
+        setupMenuIcons();
 
     </script>
 

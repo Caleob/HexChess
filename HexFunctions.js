@@ -1,3 +1,11 @@
+// Global variables to store hex locations
+let boardHexLocations = [];
+let bench1HexLocations = [];
+let bench2HexLocations = [];
+
+// You'll also need to define radius globally or calculate it
+let radius = 30; // Adjust based on your hex size
+
 function sizeCanvas(canvasElement) {
     if (!canvasElement) {
         console.error("sizeCanvas: Provided canvasElement is null or undefined.");
@@ -18,31 +26,32 @@ function sizeCanvas(canvasElement) {
 /**
  * Resizes all canvas elements in the document.
  */
-
-function resizeAllCanvases() {
-    document.querySelectorAll('canvas').forEach(canvas => {
+async function resizeAllCanvases() {
+    const canvases = document.querySelectorAll('canvas');
+    
+    for (const canvas of canvases) {
         if (canvas.offsetParent !== null && canvas.clientWidth > 0 && canvas.clientHeight > 0) {
             sizeCanvas(canvas);
-            // Draw the board on the board canvas element
+            
+            // Draw and store hex locations for each canvas
             if (canvas.id === 'board-canvas') {
-                drawBoard(canvas, boardState);
+                boardHexLocations = await drawBoard(canvas, boardState);
             }
             if (canvas.id === 'bench1-canvas') {
-                drawBench(canvas, benchState1,.9, benchOrientation);
+                bench1HexLocations = await drawBench(canvas, benchState1, .9, benchOrientation);
             }
             if (canvas.id === 'bench2-canvas') {
-                drawBench(canvas, benchState2,.9, benchOrientation);
+                bench2HexLocations = await drawBench(canvas, benchState2, .9, benchOrientation);
             }
         }
-    });
+    }
 }
 
 /**
  * Updates the layout class on the grid container based on window aspect ratio
  * and then triggers a resize of all canvases.
  */
-
-function reDraw() {
+async function reDraw() {
     const container = document.getElementById('grid-container');
     if (!container) {
         console.error("Grid container not found.");
@@ -69,97 +78,91 @@ function reDraw() {
     requestAnimationFrame(resizeAllCanvases);
 }
 
-function hexagon(canvasElement, x, y, apothem, borderColor, fillColor, rotation = 0) {
-    const ctx = canvasElement.getContext('2d');
-    ctx.beginPath();
-
-    const sideLength = (2 * apothem) / Math.sqrt(3);
-    const radius = sideLength;
-
-    for (let i = 0; i < 6; i++) {
-        const angle = (Math.PI / 3) * i - rotation;
-        const vertexX = x + radius * Math.cos(angle);
-        const vertexY = y + radius * Math.sin(angle);
-        if (i === 0) {
-            ctx.moveTo(vertexX, vertexY);
-        } else {
-            ctx.lineTo(vertexX, vertexY);
-        }
-    }
-
-    ctx.closePath();
-    ctx.fillStyle = fillColor;
-    ctx.fill();
-    ctx.strokeStyle = borderColor;
-    ctx.lineWidth = 4 * (apothem / 40); // Scale line width with apothem
-    ctx.stroke();
+/**
+ * Asynchronously loads an image and returns a Promise that resolves with the Image object.
+ * @param {string} src The source URL of the image.
+ * @returns {Promise<HTMLImageElement>} A Promise that resolves with the loaded Image object.
+ */
+function loadImage(src) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = src;
+    });
 }
 
-function getColors(boardState, hexNumber) {
-    switch(boardState[hexNumber]) {
+/**
+ * Returns the file path of the appropriate hexagon image based on the board state.
+ * @param {Array<string>} boardState An array representing the state of the board.
+ * @param {number} hexNumber The index of the hexagon.
+ * @returns {string} The file path of the hexagon image.
+ */
+function getImageFileName(boardState, hexNumber) {
+    const state = boardState[hexNumber];
+    switch (state) {
         case 'P1':
-            return ['rgb(23, 114, 69)', 'rgb(15, 75, 45)']; // dark green with darker green border
+            return 'images/reddish_marble_hex.png';
         case 'P2':
-            return ['rgb(250, 250, 0)', 'rgb(150, 150, 100)']; // red with darker red border (note: comment says red, but color is yellow, I'll follow the color)
+            return 'images/gold_stripe_marble_hex.png';
         case 'SF':
-            return ['rgb(100, 180, 255)', 'rgb(60, 140, 215)']; // sky blue with darker blue border
+            return 'images/bluish_marble_hex.png';
         case 'IM':
-            return ['rgb(25, 25, 25)', 'rgb(120, 120, 120)']; // yellow with darker yellow border (note: comment says yellow, but color is very dark, I'll follow the color)
+            return 'images/blackish_marble_hex.png';
         case 'CE':
-            return ['rgb(75, 200, 80)', 'rgb(40, 160, 45)']; // green with darker green border
+            return 'images/splotch_marble_hex.png';
         case 'OO':
-            return ['rgb(255, 255, 255)', 'rgb(100, 10, 100)']; // white with light gray border (note: comment says light gray, but color is purple, I'll follow the color)
+            return 'images/whiter_marble_hex.png';
         default:
-            return ['rgb(0, 0, 0)', 'rgb(50, 50, 50)']; // black with dark gray border
+            return 'images/white_marble_hex.png';
     }
 }
 
-function drawBoard(canvasElement, state, scale = 1.0) {
+/**
+ * Draws the game board with hexagons using images.
+ * @param {HTMLCanvasElement} canvasElement The canvas element to draw on.
+ * @param {Array<string>} state An array representing the state of each hexagon.
+ * @param {number} scale The scaling factor for the hexagons.
+ * @returns {Promise<Array<{x: number, y: number, hexNum: number}>>} A Promise that resolves with an array of hexagon locations.
+ */
+async function drawBoard(canvasElement, state, scale = 1.0) {
     const ctx = canvasElement.getContext('2d');
     ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
 
     const canvasWidth = canvasElement.width;
     const canvasHeight = canvasElement.height;
 
-    const rotation = Math.PI / 2; // Standard rotation for flat-top hexagons
-    const rows = [4, 5, 6, 7, 6, 5, 4]; // Number of hexagons in each row
+    const rows = [4, 5, 6, 7, 6, 5, 4];
 
-    // Calculate base dimensions for scaling, ensuring responsiveness
-    // apothem is the distance from the center to the midpoint of a side
-    const baseApothem = Math.min(canvasHeight / 13, canvasWidth / 14);
-    const baseSideLength = (2 * baseApothem) / Math.sqrt(3); // side length of the hexagon
-    const baseHexHorizontalSpacing = 2 * baseApothem; // Distance between centers of adjacent hexagons in a row
-    const baseHexVerticalStagger = baseSideLength * 1.5; // Vertical distance between centers of hexagons in staggered rows
+    // Determine a base size for the square hexagon image.
+    const baseHexImageSize = Math.min(canvasHeight / 7.5, canvasWidth / 7.5);
 
-    // Apply the calculated scale to the apothem and spacing
-    const apothem = baseApothem * scale;
-    const sideLength = (2 * apothem) / Math.sqrt(3);
-    const hexHorizontalSpacing = 2 * apothem;
-    const hexVerticalStagger = sideLength * 1.5;
+    // Apply the overall scale factor
+    const hexImageDrawSize = baseHexImageSize * scale;
+    
+    // Update global radius based on hex size
+    radius = hexImageDrawSize / 2;
 
-    // Calculate max theoretical width and height of the board layout for centering
+    const hexHorizontalSpacing = hexImageDrawSize * 0.9;
+    const hexVerticalStagger = hexImageDrawSize * 0.75;
+
+    // Calculate total board dimensions for centering
     const maxRowLength = Math.max(...rows);
-    // The actual width is determined by the widest row's hexagons
-    const actualBoardWidth = (maxRowLength - 1) * hexHorizontalSpacing + (2 * apothem);
-    // The actual height is determined by the total vertical stagger plus top/bottom hexagon height
-    const actualBoardHeight = (rows.length - 1) * hexVerticalStagger + (2 * sideLength);
+    const actualBoardWidth = (maxRowLength - 1) * hexHorizontalSpacing + hexImageDrawSize;
+    const actualBoardHeight = (rows.length - 1) * hexVerticalStagger + hexImageDrawSize;
 
-
-    // Calculate initial X and Y to center the entire arrangement on the canvas
+    // Calculate initial X and Y to center the entire arrangement
     const initialCenterX = canvasWidth / 2;
     const initialCenterY = canvasHeight / 2;
 
-    // The starting Y position for the first row, accounting for centering
-    // We subtract half the board height and add apothem to position the center of the first row's hexagons correctly
-    let currentY = initialCenterY - (actualBoardHeight / 2) + apothem;
+    let currentY = initialCenterY - (actualBoardHeight / 2) + (hexImageDrawSize / 2);
 
-    const hexLocations = []; // Array to store the x, y coordinates and hex number
+    const hexLocations = [];
+    let hexNum = 0;
 
-    let hexNum = 0; // Counter for hexagon index
     for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
         const numHexagonsInRow = rows[rowIndex];
 
-        // Calculate the start X for the current row to center it horizontally.
         const rowWidth = (numHexagonsInRow - 1) * hexHorizontalSpacing;
         let startX = initialCenterX - (rowWidth / 2);
 
@@ -167,98 +170,167 @@ function drawBoard(canvasElement, state, scale = 1.0) {
             const hexX = startX + i * hexHorizontalSpacing;
             const hexY = currentY;
 
-            // Store the location and index
             hexLocations.push({ x: hexX, y: hexY, hexNum: hexNum });
             hexNum++;
         }
-        // Move to the next row's starting Y position
         currentY += hexVerticalStagger;
     }
 
-    // --- Separate Loop for Drawing Hexagons ---
-    hexLocations.forEach(location => {
-        const [fillColor, borderColor] = getColors(state, location.hexNum);
-        // The apothem * .9 reduces the size slightly to create a gap between hexagons
-        hexagon(canvasElement, location.x, location.y, apothem * .9, borderColor, fillColor, rotation);
+    const imagePromises = hexLocations.map(async (location) => {
+        const imagePath = getImageFileName(state, location.hexNum);
+        const img = await loadImage(imagePath);
+
+        ctx.drawImage(img, location.x - hexImageDrawSize / 2, location.y - hexImageDrawSize / 2, hexImageDrawSize, hexImageDrawSize);
     });
 
+    await Promise.all(imagePromises); 
     return hexLocations;
 }
 
-function drawBench(canvasElement, state, scale, orientation = 'horizontal') {
-    // Assuming canvasElement is passed, similar to drawBoard
-    const ctx = canvasElement.getContext('2d'); // Get context to clear canvas, similar to drawBoard
-    ctx.clearRect(0, 0, canvasElement.width, canvasElement.height); // Clear the canvas
+/**
+ * Draws the bench with hexagons using images.
+ * @param {HTMLCanvasElement} canvasElement The canvas element to draw on.
+ * @param {Array<string>} state An array representing the state of each hexagon on the bench.
+ * @param {number} scale The scaling factor for the hexagons.
+ * @param {'horizontal' | 'vertical'} orientation The orientation of the bench.
+ * @returns {Promise<Array<{x: number, y: number, hexNum: number}>>} A Promise that resolves with an array of hexagon locations.
+ */
+async function drawBench(canvasElement, state, scale, orientation = 'horizontal') {
+    const ctx = canvasElement.getContext('2d');
+    ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
 
     const canvasWidth = canvasElement.width;
     const canvasHeight = canvasElement.height;
 
-    let baseApothem;
-    let hexHorizontalSpacing = 0;
-    let hexVerticalSpacing = 0;
+    let baseHexImageSize;
+    let hexSpacing;
 
-    // Determine baseApothem and spacing based on orientation and canvas dimensions
     if (orientation === 'horizontal') {
-        baseApothem = Math.min(canvasHeight / 2.3, canvasWidth / 15);
-        hexHorizontalSpacing = canvasWidth / 8;
+        baseHexImageSize = canvasWidth / (state.length * 1.2);
+        hexSpacing = baseHexImageSize * 0.9;
     } else if (orientation === 'vertical') {
-        baseApothem = Math.min(canvasWidth / 2, canvasHeight / 25);
-        hexVerticalSpacing = canvasHeight / 8;
+        baseHexImageSize = canvasHeight / (state.length * 1.2);
+        hexSpacing = baseHexImageSize * 0.9;
     } else {
         console.error("Invalid orientation specified for drawBench. Use 'horizontal' or 'vertical'.");
-        return []; // Return empty array if orientation is invalid
+        return [];
     }
 
-    const apothem = baseApothem * scale;
-    const rotation = Math.PI / 2; // Hexagons rotated by 90 degrees (flat-top)
-    const sideLength = (2 * apothem) / Math.sqrt(3);
+    const hexImageDrawSize = baseHexImageSize * scale;
 
-    const numHexagons = state.length; // Number of hexagons for the bench
-
+    const numHexagons = state.length;
     let startX, startY;
-    const hexLocations = []; // Array to store the x, y coordinates and hex number
+    const hexLocations = [];
 
     if (orientation === 'horizontal') {
-        // Calculate total width of the arranged hexagons
-        const totalWidth = (numHexagons - 1) * hexHorizontalSpacing + (2 * apothem);
-        // Calculate starting X to center the arrangement horizontally
-        startX = (canvasWidth / 2) - (totalWidth / 2) + apothem;
-        // Vertically center the hexagons
+        const totalWidth = (numHexagons - 1) * hexSpacing + hexImageDrawSize;
+        startX = (canvasWidth / 2) - (totalWidth / 2) + (hexImageDrawSize / 2);
         startY = canvasHeight / 2;
 
         for (let i = 0; i < numHexagons; i++) {
-            const hexX = startX + i * hexHorizontalSpacing;
+            const hexX = startX + i * hexSpacing;
             const hexY = startY;
-            // Store the location and index
             hexLocations.push({ x: hexX, y: hexY, hexNum: i });
         }
     } else if (orientation === 'vertical') {
-        // Calculate total height of the arranged hexagons
-        const totalHeight = (numHexagons - 1) * hexVerticalSpacing + (2 * sideLength);
-        // Horizontally center the hexagons
+        const totalHeight = (numHexagons - 1) * hexSpacing + hexImageDrawSize;
         startX = canvasWidth / 2;
-        // Calculate starting Y to center the arrangement vertically
-        startY = (canvasHeight / 2) - (totalHeight / 2) + sideLength;
+        startY = (canvasHeight / 2) - (totalHeight / 2) + (hexImageDrawSize / 2);
 
         for (let i = 0; i < numHexagons; i++) {
             const hexX = startX;
-            const hexY = startY + i * hexVerticalSpacing;
-            // Store the location and index
+            const hexY = startY + i * hexSpacing;
             hexLocations.push({ x: hexX, y: hexY, hexNum: i });
         }
     }
 
-    // --- Separate Loop for Drawing Hexagons ---
-    hexLocations.forEach(location => {
-        // getColors and hexagon functions are assumed to be defined elsewhere,
-        // similar to their usage in drawBoard.
-        const [fillColor, borderColor] = getColors(state, location.hexNum);
+    const imagePromises = hexLocations.map(async (location) => {
+        const imagePath = getImageFileName(state, location.hexNum);
+        const img = await loadImage(imagePath);
 
-        // CORRECTED: Use 'location.x' and 'location.y' which are properties of the current 'location' object,
-        // instead of trying to access 'x' and 'y' directly from the 'hexLocations' array.
-        // The apothem * .9 reduces the size slightly to create a gap between hexagons
-        hexagon(canvasElement, location.x, location.y, apothem * .9, borderColor, fillColor, rotation);
+        ctx.drawImage(img, location.x - hexImageDrawSize / 2, location.y - hexImageDrawSize / 2, hexImageDrawSize, hexImageDrawSize);
     });
-    
+
+    await Promise.all(imagePromises);
+
     return hexLocations;
+}
+
+// Helper function to get mouse position relative to canvas
+function getMousePosInCanvas(canvas, event) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top
+    };
+}
+
+// Updated click handler that uses the stored hex locations
+function handleClickOnCanvas(event, canvasId) {
+    const canvas = document.getElementById(canvasId);
+    const mousePos = getMousePosInCanvas(canvas, event);
+
+    console.log(`Click registered on ${canvasId} at x: ${mousePos.x}, y: ${mousePos.y}`);
+
+    // Get the appropriate hex locations based on canvas ID
+    let currentHexLocations;
+    switch (canvasId) {
+        case 'board-canvas':
+            currentHexLocations = boardHexLocations;
+            break;
+        case 'bench1-canvas':
+            currentHexLocations = bench1HexLocations;
+            break;
+        case 'bench2-canvas':
+            currentHexLocations = bench2HexLocations;
+            break;
+        default:
+            console.error(`Unknown canvas ID: ${canvasId}`);
+            return;
+    }
+
+    if (currentHexLocations && radius) {
+        for (const hex of currentHexLocations) {
+            const dist = Math.sqrt(
+                Math.pow(mousePos.x - hex.x, 2) + Math.pow(mousePos.y - hex.y, 2)
+            );
+            if (dist < radius) {
+                console.log(`Clicked hex number: ${hex.hexNum} on ${canvasId}`);
+                // Perform actions based on the clicked hex
+                handleHexClick(canvasId, hex.hexNum);
+                break;
+            }
+        }
+    }
+}
+
+// Optional: Add a separate function to handle hex clicks
+function handleHexClick(canvasId, hexNum) {
+    console.log(`Processing click on hex ${hexNum} from ${canvasId}`);
+}
+
+// Attach click listeners
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('board-canvas').addEventListener('click', (e) => 
+        handleClickOnCanvas(e, 'board-canvas'));
+    document.getElementById('bench1-canvas').addEventListener('click', (e) => 
+        handleClickOnCanvas(e, 'bench1-canvas'));
+    document.getElementById('bench2-canvas').addEventListener('click', (e) => 
+        handleClickOnCanvas(e, 'bench2-canvas'));
+    
+    // Initialize the game
+    reDraw();
+});
+
+function setupMenuIcons() {
+    const menuIcons = document.querySelectorAll('#menu-item img');
+    const iconMessages = ['Concede', 'New Game', 'Rules', 'Chat'];
+
+    menuIcons.forEach((icon, index) => {
+        if (icon) {
+            icon.addEventListener('click', () => {
+                alert(`I just clicked the ${iconMessages[index]} icon!`);
+            });
+        }
+    });
 }
