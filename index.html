@@ -34,7 +34,7 @@
          * @param {HTMLCanvasElement} canvasElement The canvas element to size.
          */
         let benchOrientation = 'horizontal';
-
+        window.addEventListener('resize', reDraw);
         const boardState = [
             "OO","OO","OO","OO",
             "OO","OO","OO","OO","OO",
