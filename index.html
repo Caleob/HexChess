@@ -33,9 +33,20 @@
          * Sets the canvas drawing surface size to its displayed size (CSS pixels).
          * @param {HTMLCanvasElement} canvasElement The canvas element to size.
          */
+        let boardState = [];
+        let benchState1 = [];
+        let benchState2 = [];
         let benchOrientation = 'horizontal';
         window.addEventListener('resize', reDraw);
-        const boardState = [
+        
+
+        
+
+        getGameState(); //This function will eventually be a back end request
+        setupMenuIcons();
+
+        function getGameState() {
+            boardState = [
             "OO","OO","OO","OO",
             "OO","OO","OO","OO","OO",
             "OO","OO","SF","SF","OO","OO",
@@ -43,12 +54,11 @@
             "OO","OO","SF","SF","OO","OO",
             "OO","OO","OO","OO","OO",
             "OO","OO","OO","OO",
-        ];
+            ];
 
-        const benchState1 = ["P1","P1","P1","P1","P1","P1","P1","IM"];
-        const benchState2 = ["P2","P2","P2","P2","P2","P2","P2","IM"];
-
-        setupMenuIcons();
+            benchState1 = ["P1","P1","P1","P1","P1","P1","P1","IM"];
+            benchState2 = ["P2","P2","P2","P2","P2","P2","P2","IM"];
+        }
 
     </script>
 

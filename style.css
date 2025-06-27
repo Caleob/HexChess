@@ -6,7 +6,7 @@
             height: 100vh;
             overflow: hidden; /* Prevent scrollbars from window itself */
             font-family: Arial, sans-serif;
-            background-color: #D2B48C; /* Retro Tan Background */
+            background-color: #000000; /* Retro Tan Background */
         }
 
         /* Grid Container Setup */
@@ -29,7 +29,7 @@
             flex-direction: column; /* Default for content stacking */
             justify-content: center; /* Center content vertically */
             align-items: center; /* Center content horizontally */
-            background-color: #D2B48C; /* Retro Tan Background */
+            background-color: #000000; /* Retro Tan Background */
         }
 
         /* Specific Item Styling */

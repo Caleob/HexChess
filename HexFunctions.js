@@ -102,15 +102,15 @@ function getImageFileName(boardState, hexNumber) {
     const state = boardState[hexNumber];
     switch (state) {
         case 'P1':
-            return 'images/reddish_marble_hex.png';
+            return 'images/green-border.png';
         case 'P2':
-            return 'images/gold_stripe_marble_hex.png';
+            return 'images/yellow-border.png';
         case 'SF':
-            return 'images/bluish_marble_hex.png';
+            return 'images/blue-border.png';
         case 'IM':
-            return 'images/blackish_marble_hex.png';
+            return 'images/grey-border.png';
         case 'CE':
-            return 'images/splotch_marble_hex.png';
+            return 'images/grey_veined_marble_hex.png';
         case 'OO':
             return 'images/whiter_marble_hex.png';
         default:
@@ -135,7 +135,7 @@ async function drawBoard(canvasElement, state, scale = 1.0) {
     const rows = [4, 5, 6, 7, 6, 5, 4];
 
     // Determine a base size for the square hexagon image.
-    const baseHexImageSize = Math.min(canvasHeight / 7.5, canvasWidth / 7.5);
+    const baseHexImageSize = Math.min(canvasHeight / 5.5, canvasWidth / 6.5);
 
     // Apply the overall scale factor
     const hexImageDrawSize = baseHexImageSize * scale;
@@ -206,10 +206,10 @@ async function drawBench(canvasElement, state, scale, orientation = 'horizontal'
     let hexSpacing;
 
     if (orientation === 'horizontal') {
-        baseHexImageSize = canvasWidth / (state.length * 1.2);
-        hexSpacing = baseHexImageSize * 0.9;
+        baseHexImageSize = canvasWidth / (state.length * 1.4);
+        hexSpacing = baseHexImageSize * 1.3;
     } else if (orientation === 'vertical') {
-        baseHexImageSize = canvasHeight / (state.length * 1.2);
+        baseHexImageSize = canvasHeight / (state.length * 1.1);
         hexSpacing = baseHexImageSize * 0.9;
     } else {
         console.error("Invalid orientation specified for drawBench. Use 'horizontal' or 'vertical'.");
