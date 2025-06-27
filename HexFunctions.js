@@ -1,11 +1,3 @@
-// Global variables to store hex locations
-let boardHexLocations = [];
-let bench1HexLocations = [];
-let bench2HexLocations = [];
-
-// You'll also need to define radius globally or calculate it
-let radius = 30; // Adjust based on your hex size
-
 function sizeCanvas(canvasElement) {
     if (!canvasElement) {
         console.error("sizeCanvas: Provided canvasElement is null or undefined.");
@@ -28,20 +20,20 @@ function sizeCanvas(canvasElement) {
  */
 async function resizeAllCanvases() {
     const canvases = document.querySelectorAll('canvas');
-    
+
     for (const canvas of canvases) {
         if (canvas.offsetParent !== null && canvas.clientWidth > 0 && canvas.clientHeight > 0) {
             sizeCanvas(canvas);
-            
+
             // Draw and store hex locations for each canvas
             if (canvas.id === 'board-canvas') {
-                boardHexLocations = await drawBoard(canvas, boardState);
+                boardHexLocations = await drawBoard(canvas, gameState.board); // Pass the board array from gameState
             }
             if (canvas.id === 'bench1-canvas') {
-                bench1HexLocations = await drawBench(canvas, benchState1, .9, benchOrientation);
+                bench1HexLocations = await drawBench(canvas, gameState.players[1].bench, .9, benchOrientation); // Pass player 1's bench
             }
             if (canvas.id === 'bench2-canvas') {
-                bench2HexLocations = await drawBench(canvas, benchState2, .9, benchOrientation);
+                bench2HexLocations = await drawBench(canvas, gameState.players[2].bench, .9, benchOrientation); // Pass player 2's bench
             }
         }
     }
@@ -64,10 +56,10 @@ async function reDraw() {
     container.classList.remove('layout-tall', 'layout-wide');
 
     let newLayoutClass = '';
-    if (aspectRatio < threshold) { 
+    if (aspectRatio < threshold) {
         newLayoutClass = 'layout-tall';
         benchOrientation = 'horizontal';
-    } else { 
+    } else {
         newLayoutClass = 'layout-wide';
         benchOrientation = 'vertical';
     }
@@ -93,39 +85,59 @@ function loadImage(src) {
 }
 
 /**
- * Returns the file path of the appropriate hexagon image based on the board state.
- * @param {Array<string>} boardState An array representing the state of the board.
- * @param {number} hexNumber The index of the hexagon.
- * @returns {string} The file path of the hexagon image.
+ * Returns the file path of the appropriate hexagon image based on the hex object's properties or piece.
+ * @param {Object} hexOrPiece The hex object from the board or a piece object from the bench.
+ * @returns {string} The file path of the hexagon or piece image.
  */
-function getImageFileName(boardState, hexNumber) {
-    const state = boardState[hexNumber];
-    switch (state) {
-        case 'P1':
-            return 'images/green-border.png';
-        case 'P2':
-            return 'images/yellow-border.png';
-        case 'SF':
+function getImageFileName(hexOrPiece) {
+    // If it's a hex object from the board
+    if (hexOrPiece.hasOwnProperty('index')) { // This checks if it's a hex object
+        if (hexOrPiece.piece) {
+            // If a piece is on the hex
+            if (hexOrPiece.piece.player === 1) {
+                return 'images/green-border.png'; // Example: Player 1 piece on hex
+            } else if (hexOrPiece.piece.player === 2) {
+                return 'images/yellow-border.png'; // Example: Player 2 piece on hex
+            }
+        }
+        // If no piece, check hex properties
+        if (hexOrPiece.isSafe) {
             return 'images/blue-border.png';
-        case 'IM':
+        }
+        if (hexOrPiece.isImpassable) {
             return 'images/grey-border.png';
-        case 'CE':
+        }
+        if (hexOrPiece.isCenter) {
             return 'images/grey_veined_marble_hex.png';
-        case 'OO':
-            return 'images/whiter_marble_hex.png';
-        default:
-            return 'images/white_marble_hex.png';
+        }
+        if (!hexOrPiece.allowsInitialDeploy) { // Assuming noDeploy is represented by allowsInitialDeploy: false
+             return 'images/whiter_marble_hex.png';
+        }
+        // Default board hex
+        return 'images/white_marble_hex.png';
+    } else if (hexOrPiece.hasOwnProperty('type') && hexOrPiece.hasOwnProperty('player')) { // This checks if it's a piece object
+        // If it's a piece from the bench
+        if (hexOrPiece.type === 'blocker') {
+            return 'images/grey-border.png'; // Example for blocker piece
+        }
+        if (hexOrPiece.player === 1) {
+            return 'images/green-border.png'; // Example for player 1 regular/promoted piece
+        } else if (hexOrPiece.player === 2) {
+            return 'images/yellow-border.png'; // Example for player 2 regular/promoted piece
+        }
     }
+    // Fallback for unknown type
+    return 'images/white_marble_hex.png';
 }
 
 /**
  * Draws the game board with hexagons using images.
  * @param {HTMLCanvasElement} canvasElement The canvas element to draw on.
- * @param {Array<string>} state An array representing the state of each hexagon.
+ * @param {Array<Object>} board The board array from the gameState.
  * @param {number} scale The scaling factor for the hexagons.
  * @returns {Promise<Array<{x: number, y: number, hexNum: number}>>} A Promise that resolves with an array of hexagon locations.
  */
-async function drawBoard(canvasElement, state, scale = 1.0) {
+async function drawBoard(canvasElement, board, scale = 1.0) {
     const ctx = canvasElement.getContext('2d');
     ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
 
@@ -134,24 +146,17 @@ async function drawBoard(canvasElement, state, scale = 1.0) {
 
     const rows = [4, 5, 6, 7, 6, 5, 4];
 
-    // Determine a base size for the square hexagon image.
     const baseHexImageSize = Math.min(canvasHeight / 5.5, canvasWidth / 6.5);
-
-    // Apply the overall scale factor
     const hexImageDrawSize = baseHexImageSize * scale;
-    
-    // Update global radius based on hex size
     radius = hexImageDrawSize / 2;
 
     const hexHorizontalSpacing = hexImageDrawSize * 0.9;
     const hexVerticalStagger = hexImageDrawSize * 0.75;
 
-    // Calculate total board dimensions for centering
     const maxRowLength = Math.max(...rows);
     const actualBoardWidth = (maxRowLength - 1) * hexHorizontalSpacing + hexImageDrawSize;
     const actualBoardHeight = (rows.length - 1) * hexVerticalStagger + hexImageDrawSize;
 
-    // Calculate initial X and Y to center the entire arrangement
     const initialCenterX = canvasWidth / 2;
     const initialCenterY = canvasHeight / 2;
 
@@ -177,25 +182,26 @@ async function drawBoard(canvasElement, state, scale = 1.0) {
     }
 
     const imagePromises = hexLocations.map(async (location) => {
-        const imagePath = getImageFileName(state, location.hexNum);
+        const hexData = board[location.hexNum]; // Get the hex object from the board array
+        const imagePath = getImageFileName(hexData);
         const img = await loadImage(imagePath);
 
         ctx.drawImage(img, location.x - hexImageDrawSize / 2, location.y - hexImageDrawSize / 2, hexImageDrawSize, hexImageDrawSize);
     });
 
-    await Promise.all(imagePromises); 
+    await Promise.all(imagePromises);
     return hexLocations;
 }
 
 /**
  * Draws the bench with hexagons using images.
  * @param {HTMLCanvasElement} canvasElement The canvas element to draw on.
- * @param {Array<string>} state An array representing the state of each hexagon on the bench.
+ * @param {Array<Object>} bench The bench array (array of piece objects).
  * @param {number} scale The scaling factor for the hexagons.
  * @param {'horizontal' | 'vertical'} orientation The orientation of the bench.
  * @returns {Promise<Array<{x: number, y: number, hexNum: number}>>} A Promise that resolves with an array of hexagon locations.
  */
-async function drawBench(canvasElement, state, scale, orientation = 'horizontal') {
+async function drawBench(canvasElement, bench, scale, orientation = 'horizontal') {
     const ctx = canvasElement.getContext('2d');
     ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
 
@@ -206,10 +212,10 @@ async function drawBench(canvasElement, state, scale, orientation = 'horizontal'
     let hexSpacing;
 
     if (orientation === 'horizontal') {
-        baseHexImageSize = canvasWidth / (state.length * 1.4);
+        baseHexImageSize = canvasWidth / (bench.length * 1.4);
         hexSpacing = baseHexImageSize * 1.3;
     } else if (orientation === 'vertical') {
-        baseHexImageSize = canvasHeight / (state.length * 1.1);
+        baseHexImageSize = canvasHeight / (bench.length * 1.1);
         hexSpacing = baseHexImageSize * 0.9;
     } else {
         console.error("Invalid orientation specified for drawBench. Use 'horizontal' or 'vertical'.");
@@ -218,7 +224,7 @@ async function drawBench(canvasElement, state, scale, orientation = 'horizontal'
 
     const hexImageDrawSize = baseHexImageSize * scale;
 
-    const numHexagons = state.length;
+    const numHexagons = bench.length;
     let startX, startY;
     const hexLocations = [];
 
@@ -245,7 +251,8 @@ async function drawBench(canvasElement, state, scale, orientation = 'horizontal'
     }
 
     const imagePromises = hexLocations.map(async (location) => {
-        const imagePath = getImageFileName(state, location.hexNum);
+        const pieceData = bench[location.hexNum]; // Get the piece object from the bench array
+        const imagePath = getImageFileName(pieceData);
         const img = await loadImage(imagePath);
 
         ctx.drawImage(img, location.x - hexImageDrawSize / 2, location.y - hexImageDrawSize / 2, hexImageDrawSize, hexImageDrawSize);
@@ -307,19 +314,39 @@ function handleClickOnCanvas(event, canvasId) {
 // Optional: Add a separate function to handle hex clicks
 function handleHexClick(canvasId, hexNum) {
     console.log(`Processing click on hex ${hexNum} from ${canvasId}`);
+    // Example: if you click on the board, you might want to log the piece type
+    if (canvasId === 'board-canvas') {
+        const clickedHex = gameState.board[hexNum];
+        if (clickedHex.piece) {
+            console.log(`Piece on hex ${hexNum}: Player ${clickedHex.piece.player}, Type: ${clickedHex.piece.type}`);
+        } else {
+            console.log(`Hex ${hexNum} is empty.`);
+        }
+    } else if (canvasId === 'bench1-canvas') {
+        const clickedPiece = gameState.players[1].bench[hexNum];
+        if (clickedPiece) {
+            console.log(`Bench 1 piece ${hexNum}: Player ${clickedPiece.player}, Type: ${clickedPiece.type}`);
+        }
+    } else if (canvasId === 'bench2-canvas') {
+        const clickedPiece = gameState.players[2].bench[hexNum];
+        if (clickedPiece) {
+            console.log(`Bench 2 piece ${hexNum}: Player ${clickedPiece.player}, Type: ${clickedPiece.type}`);
+        }
+    }
 }
 
 // Attach click listeners
 document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('board-canvas').addEventListener('click', (e) => 
+    document.getElementById('board-canvas').addEventListener('click', (e) =>
         handleClickOnCanvas(e, 'board-canvas'));
-    document.getElementById('bench1-canvas').addEventListener('click', (e) => 
+    document.getElementById('bench1-canvas').addEventListener('click', (e) =>
         handleClickOnCanvas(e, 'bench1-canvas'));
-    document.getElementById('bench2-canvas').addEventListener('click', (e) => 
+    document.getElementById('bench2-canvas').addEventListener('click', (e) =>
         handleClickOnCanvas(e, 'bench2-canvas'));
-    
+
     // Initialize the game
     reDraw();
+    setupMenuIcons(); // Ensure this is called to set up menu listeners
 });
 
 function setupMenuIcons() {

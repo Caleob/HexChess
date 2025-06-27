@@ -27,39 +27,33 @@
             <canvas id="bench2-canvas"></canvas>
         </div>
     </div>
+
+    <script src="GameState.js"></script>
+    <script>
+        // Initialize game state immediately after GameState.js is loaded
+        // This ensures gameState is available globally before HexFunctions.js runs
+        let gameState = getBoardState(); // This function comes from GameState.js
+        let benchState1 = gameState.players[1].bench; // Derived from the main gameState
+        let benchState2 = gameState.players[2].bench; // Derived from the main gameState
+        let benchOrientation = 'horizontal'; // Default orientation
+        let radius = 30; // Adjust based on your hex size
+    </script>
     <script src="HexFunctions.js"></script>
     <script>
-        /**
-         * Sets the canvas drawing surface size to its displayed size (CSS pixels).
-         * @param {HTMLCanvasElement} canvasElement The canvas element to size.
-         */
-        let boardState = [];
-        let benchState1 = [];
-        let benchState2 = [];
-        let benchOrientation = 'horizontal';
-        window.addEventListener('resize', reDraw);
-        
+        // All DOM-related initializations and event listeners should go here
+        // This ensures the HTML elements are ready
+        document.addEventListener('DOMContentLoaded', () => {
+            window.addEventListener('resize', reDraw);
+            setupMenuIcons();
+            reDraw(); // Initial draw of the board and benches
+        });
 
-        
-
-        getGameState(); //This function will eventually be a back end request
-        setupMenuIcons();
-
-        function getGameState() {
-            boardState = [
-            "OO","OO","OO","OO",
-            "OO","OO","OO","OO","OO",
-            "OO","OO","SF","SF","OO","OO",
-            "OO","OO","IM","CE","IM","OO","OO",
-            "OO","OO","SF","SF","OO","OO",
-            "OO","OO","OO","OO","OO",
-            "OO","OO","OO","OO",
-            ];
-
-            benchState1 = ["P1","P1","P1","P1","P1","P1","P1","IM"];
-            benchState2 = ["P2","P2","P2","P2","P2","P2","P2","IM"];
-        }
-
+        // The getGameState() function from the original snippet seemed to be a placeholder
+        // or a conceptual backend call, not directly related to the local `gameState` setup.
+        // If it's indeed a backend call that populates `gameState`,
+        // you'd typically handle that asynchronously with `await`
+        // and then call `reDraw()` inside its `.then()` or after `await`.
+        // For this "simplest flow" assuming local initialization, it's omitted.
     </script>
 
 </body>
