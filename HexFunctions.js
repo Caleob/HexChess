@@ -12,7 +12,7 @@ function sizeCanvas(canvasElement) {
     }
     const parentDiv = canvasElement.parentElement;
     const name = canvasElement.id || (parentDiv ? parentDiv.dataset.name : 'Unnamed Canvas');
-    console.log(`Sized: ${name}, Dimensions: (${canvasElement.width.toFixed(2)}, ${canvasElement.height.toFixed(2)})`);
+    //console.log(`Sized: ${name}, Dimensions: (${canvasElement.width.toFixed(2)}, ${canvasElement.height.toFixed(2)})`);
 }
 
 /**
@@ -64,7 +64,7 @@ async function reDraw() {
         benchOrientation = 'vertical';
     }
     container.classList.add(newLayoutClass);
-    console.log(`Applied layout: ${newLayoutClass} (Aspect Ratio: ${aspectRatio.toFixed(2)})`);
+    //console.log(`Applied layout: ${newLayoutClass} (Aspect Ratio: ${aspectRatio.toFixed(2)})`);
 
     // Use requestAnimationFrame to ensure sizing happens after layout is applied
     requestAnimationFrame(resizeAllCanvases);
@@ -277,7 +277,7 @@ function handleClickOnCanvas(event, canvasId) {
     const canvas = document.getElementById(canvasId);
     const mousePos = getMousePosInCanvas(canvas, event);
 
-    console.log(`Click registered on ${canvasId} at x: ${mousePos.x}, y: ${mousePos.y}`);
+    //console.log(`Click registered on ${canvasId} at x: ${mousePos.x}, y: ${mousePos.y}`);
 
     // Get the appropriate hex locations based on canvas ID
     let currentHexLocations;
@@ -313,24 +313,24 @@ function handleClickOnCanvas(event, canvasId) {
 
 // Optional: Add a separate function to handle hex clicks
 function handleHexClick(canvasId, hexNum) {
-    console.log(`Processing click on hex ${hexNum} from ${canvasId}`);
+    //console.log(`Processing click on hex ${hexNum} from ${canvasId}`);
     // Example: if you click on the board, you might want to log the piece type
     if (canvasId === 'board-canvas') {
         const clickedHex = gameState.board[hexNum];
         if (clickedHex.piece) {
             console.log(`Piece on hex ${hexNum}: Player ${clickedHex.piece.player}, Type: ${clickedHex.piece.type}`);
         } else {
-            console.log(`Hex ${hexNum} is empty.`);
+            //console.log(`Hex ${hexNum} is empty.`);
         }
     } else if (canvasId === 'bench1-canvas') {
         const clickedPiece = gameState.players[1].bench[hexNum];
         if (clickedPiece) {
-            console.log(`Bench 1 piece ${hexNum}: Player ${clickedPiece.player}, Type: ${clickedPiece.type}`);
+            //console.log(`Bench 1 piece ${hexNum}: Player ${clickedPiece.player}, Type: ${clickedPiece.type}`);
         }
     } else if (canvasId === 'bench2-canvas') {
         const clickedPiece = gameState.players[2].bench[hexNum];
         if (clickedPiece) {
-            console.log(`Bench 2 piece ${hexNum}: Player ${clickedPiece.player}, Type: ${clickedPiece.type}`);
+            //console.log(`Bench 2 piece ${hexNum}: Player ${clickedPiece.player}, Type: ${clickedPiece.type}`);
         }
     }
 }
@@ -361,3 +361,11 @@ function setupMenuIcons() {
         }
     });
 }
+
+// All DOM-related initializations and event listeners should go here
+// This ensures the HTML elements are ready
+document.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('resize', reDraw);
+    setupMenuIcons();
+    reDraw(); // Initial draw of the board and benches
+});

@@ -232,3 +232,11 @@ function checkWinCondition(gameState, playerId) {
     
     return (regularTilesOnBench + regularTilesOnBoard) === 0;
 }
+
+
+// Initialize game state immediately after GameState.js is loaded
+// This ensures gameState is available globally before HexFunctions.js runs
+let gameState = getBoardState(); // This function comes from GameState.js
+let benchState1 = gameState.players[1].bench; // Derived from the main gameState
+let benchState2 = gameState.players[2].bench; // Derived from the main gameState
+let benchOrientation = 'horizontal'; // Default orientation
