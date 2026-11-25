@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HexChess — Product Requirements Document (PRD)</title>
+  <style>
+    :root {
+      --bg-deep: #070b16;
+      --bg-mid: #0b1224;
+      --surface: #121b33;
+      --surface-2: #182342;
+      --border: rgba(255, 255, 255, 0.1);
+      --text: #e6edf7;
+      --muted: #94a3b8;
+      --blue: #3b82f6;
+      --blue-glow: rgba(59, 130, 246, 0.35);
+      --orange: #f59e0b;
+      --orange-glow: rgba(245, 158, 11, 0.35);
+      --yellow-center: #f7e600;
+      --safe-blue: #aee2ee;
+      --inner-white: #f4f6f9;
+      --rim-sand: #eae0a8;
+      --accent-pink: #ec4899;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+      background: radial-gradient(circle at 50% 0%, #101c3a 0%, var(--bg-deep) 65%);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 40px 24px 96px;
+    }
+
+    header.hero {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 28px;
+      margin-bottom: 36px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 16px;
+    }
+
+    .brand-title {
+      font-size: 2.4rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      margin: 0;
+      background: linear-gradient(90deg, #f472b6, #a78bfa, #60a5fa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      margin: 6px 0 0;
+      font-size: 1.05rem;
+    }
+
+    .meta-badges {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      color: #cbd5e1;
+    }
+
+    nav.toc {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 22px;
+      margin-bottom: 36px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 20px;
+    }
+
+    nav.toc a {
+      color: #93c5fd;
+      text-decoration: none;
+      font-size: 0.92rem;
+      font-weight: 500;
+    }
+
+    nav.toc a:hover { text-decoration: underline; }
+
+    section {
+      margin-bottom: 48px;
+    }
+
+    h2 {
+      font-size: 1.55rem;
+      margin: 0 0 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      color: #f8fafc;
+    }
+
+    h3 {
+      font-size: 1.12rem;
+      margin: 20px 0 10px;
+      color: #cbd5e1;
+    }
+
+    p { margin: 0 0 12px; color: #cbd5e1; }
+
+    ul, ol {
+      margin: 0 0 14px;
+      padding-left: 22px;
+      color: #cbd5e1;
+    }
+
+    li { margin-bottom: 6px; }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+    }
+
+    .card h3 { margin-top: 0; }
+
+    code {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 2px 6px;
+      border-radius: 5px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.88em;
+      color: #93c5fd;
+    }
+
+    pre {
+      background: #090e1c;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      overflow-x: auto;
+      font-size: 0.85rem;
+      line-height: 1.5;
+      color: #dbeafe;
+    }
+
+    pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      color: inherit;
+    }
+
+    /* Interactive Board Showcase */
+    .board-stage {
+      position: relative;
+      background: var(--bg-mid);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .turn-glow {
+      position: absolute;
+      width: 520px;
+      height: 520px;
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      filter: blur(55px);
+      opacity: 0.65;
+      transition: background 0.5s ease;
+      animation: pulseGlow 3.2s ease-in-out infinite;
+    }
+
+    .turn-glow.blue {
+      background: radial-gradient(circle, rgba(59, 130, 246, 0.55) 0%, rgba(59, 130, 246, 0) 70%);
+    }
+
+    .turn-glow.orange {
+      background: radial-gradient(circle, rgba(245, 158, 11, 0.55) 0%, rgba(245, 158, 11, 0) 70%);
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { transform: translate(-50%, -50%) scale(0.95); opacity: 0.45; }
+      50% { transform: translate(-50%, -50%) scale(1.06); opacity: 0.85; }
+    }
+
+    .controls-bar {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+      justify-content: center;
+    }
+
+    .btn {
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 7px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.86rem;
+      font-weight: 500;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .btn:hover { background: #23325c; }
+    .btn.active {
+      background: #2563eb;
+      border-color: #60a5fa;
+      color: #fff;
+    }
+    .btn.orange-active {
+      background: #d97706;
+      border-color: #fbbf24;
+      color: #fff;
+    }
+
+    .svg-wrap {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 560px;
+    }
+
+    .legend {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      justify-content: center;
+      margin-top: 14px;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+      border: 1px solid rgba(255,255,255,0.25);
+      display: inline-block;
+    }
+
+    .scenario-svg {
+      width: 100%;
+      height: 170px;
+      background: #0b1224;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      margin-bottom: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 0.92rem;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      color: #f8fafc;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .pill-preview {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(18, 27, 51, 0.9);
+      border: 1px solid var(--border);
+      padding: 8px 18px;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      margin-top: 12px;
+      position: relative;
+      z-index: 2;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="hero">
+      <div>
+        <h1 class="brand-title">HEXCHESS</h1>
+        <p class="subtitle">Product Requirements Document (PRD) — Playable HTML Edition (Draft v0.1)</p>
+      </div>
+      <div class="meta-badges">
+        <span class="badge">Standalone HTML/JS/CSS</span>
+        <span class="badge">Cubic Hex Grid (37 Hexes)</span>
+        <span class="badge">Hot Seat &bull; PvAI &bull; AIvAI</span>
+        <span class="badge">ML-Ready Game Records</span>
+      </div>
+    </header>
+
+    <nav class="toc">
+      <a href="#overview">1. Overview &amp; Modes</a>
+      <a href="#coordinates">2. Board &amp; Cubic Coordinates</a>
+      <a href="#mechanics">3. Rules &amp; Visual Mechanics</a>
+      <a href="#ui">4. UI, Modals &amp; Animations</a>
+      <a href="#ai">5. AI Players</a>
+      <a href="#records">6. Minimal State Encoding &amp; Game Records</a>
+      <a href="#architecture">7. Modular File Structure</a>
+    </nav>
+
+    <!-- 1. OVERVIEW -->
+    <section id="overview">
+      <h2>1. Overview &amp; Game Modes</h2>
+      <p>
+        HexChess is a deterministic, perfect-information abstract strategy game played on a 37-hex hexagonal board.
+        This PRD specifies a self-contained, playable HTML/CSS/JavaScript web application designed for human play,
+        AI experimentation, and structured game-record generation for replay or machine learning training.
+        <strong>Blue always moves first</strong>, and moves are final (<strong>no Undo</strong>).
+      </p>
+      <div class="grid-3">
+        <div class="card">
+          <h3>2-Player Hot Seat</h3>
+          <p>Two human players alternate turns on the same device. Ambient board glow and the bottom status pill clearly indicate whose turn it is.</p>
+        </div>
+        <div class="card">
+          <h3>Player vs. AI</h3>
+          <p>Human is randomly assigned Blue or Orange at game start (no color selector). Configurable AI thinking delay in Settings keeps moves easy to follow.</p>
+        </div>
+        <div class="card">
+          <h3>AI vs. AI</h3>
+          <p>Pits the selected AI tier against itself using the Speed setting in Settings—ideal for watching matches or generating ML training records.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. BOARD & CUBIC COORDINATES -->
+    <section id="coordinates">
+      <h2>2. Board Geometry &amp; Cubic Coordinates</h2>
+      <p>
+        Matching <code>HexChessBoard.png</code>, the board consists of <strong>37 flat-top hexagons</strong> forming <strong>4–5–6–7–6–5–4 vertical columns</strong> (flat sides on the left/right edges of the board, points at the top and bottom).
+        Internally, every hex is addressed using <strong>Cubic Coordinates <code>(q, r, s)</code></strong> satisfying <code>q + r + s = 0</code> and <code>max(|q|, |r|, |s|) &le; 3</code>.
+      </p>
+      <ul>
+        <li><strong>Canonical Index Order (<code>0..36</code>):</strong> Column-by-column left-to-right (<code>q = -3..+3</code>), top-to-bottom within each column (<code>r</code> ascending). Under this ordering, the <strong>Center Hex <code>(0,0,0)</code> is index <code>18</code></strong>, the top Neutral Pusher <code>(0,-3,3)</code> is index <code>15</code>, and the bottom Neutral Pusher <code>(0,3,-3)</code> is index <code>21</code>.</li>
+        <li><strong>Zones by Distance <code>d = max(|q|, |r|, |s|)</code>:</strong> <code>d=0</code> Center, <code>d=1</code> Safe Zone Ring (6 hexes), <code>d=2</code> Inner Ring (12 hexes), <code>d=3</code> Outer Rim (18 hexes).</li>
+        <li><strong>6 Unit Direction Vectors (Flat-Top):</strong> Up <code>(0,-1,+1)</code>, Down <code>(0,+1,-1)</code>, Up-Right <code>(+1,-1,0)</code>, Down-Right <code>(+1,0,-1)</code>, Up-Left <code>(-1,0,+1)</code>, Down-Left <code>(-1,+1,0)</code>.</li>
+      </ul>
+
+      <div class="board-stage">
+        <div id="turnGlow" class="turn-glow blue"></div>
+
+        <div class="controls-bar">
+          <button class="btn active" id="btnViewCoords" onclick="setBoardView('coords')">Cubic (q,r,s)</button>
+          <button class="btn" id="btnViewIndex" onclick="setBoardView('index')">Index (0–36)</button>
+          <button class="btn" id="btnViewSetup" onclick="setBoardView('setup')">Starting Setup</button>
+          <button class="btn" id="btnViewMid" onclick="setBoardView('midgame')">Sample Midgame</button>
+          <span style="width: 12px;"></span>
+          <button class="btn active" id="btnGlowBlue" onclick="setGlow('blue')">Blue Turn Glow</button>
+          <button class="btn" id="btnGlowOrange" onclick="setGlow('orange')">Orange Turn Glow</button>
+        </div>
+
+        <div class="svg-wrap">
+          <svg id="mainBoardSvg" viewBox="-260 -260 520 520" width="100%"></svg>
+        </div>
+
+        <div class="pill-preview" id="statusPillPreview">
+          <span style="color:#60a5fa;">&#9201;</span>
+          <span id="statusPillText">Blue's Turn! (Pusher Optional &rarr; Regular Mandatory)</span>
+        </div>
+
+        <div class="legend">
+          <span class="legend-item"><span class="swatch" style="background:var(--yellow-center)"></span>Center Hex (d=0)</span>
+          <span class="legend-item"><span class="swatch" style="background:var(--safe-blue)"></span>Safe Zone Ring (d=1)</span>
+          <span class="legend-item"><span class="swatch" style="background:var(--inner-white)"></span>Inner Ring (d=2)</span>
+          <span class="legend-item"><span class="swatch" style="background:var(--rim-sand)"></span>Outer Rim (d=3)</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. RULES & VISUAL MECHANICS -->
+    <section id="mechanics">
+      <h2>3. Core Rules &amp; Edge Cases</h2>
+      <p>
+        Each player begins with <strong>4 Regular Tiles</strong> and <strong>2 Pusher Tiles</strong> on their bench, while <strong>2 Neutral Pusher Tiles</strong> start on the board at the top <code>(0,-3,3)</code> and bottom <code>(0,3,-3)</code> corners.
+        On each turn, a player performs an <strong>optional Pusher Action</strong> (place on any empty non-center hex, or move a friendly/neutral Pusher 1 hex), followed by a <strong>mandatory Regular Action</strong> (place on an empty Outer Rim hex, or move a Regular/Promoted Tile).
+      </p>
+      <ul>
+        <li><strong>Implicit Pusher Skip:</strong> At the start of a turn, clicking any Regular Tile (bench or board) directly executes the Regular Action and skips Step 1—no "Skip" button is required, and skipped Pusher steps are omitted from the JSON history.</li>
+        <li><strong>Pusher Collision Physics:</strong> Moving a Pusher directly into an adjacent Pusher is <strong>illegal</strong>. In a chain <code>[Pusher] &rarr; [A] &rarr; [B] &rarr; [Other Pusher]</code>, tile <code>B</code> is <strong>crushed (captured)</strong>, tile <code>A</code> advances into <code>B</code>'s vacated hex, and the pushing Pusher advances into <code>A</code>'s hex while the stationary Pusher does not move.</li>
+        <li><strong>Immediate Victory &amp; Self-Elimination:</strong> Victory is checked immediately after <em>every</em> action (including Step 1 Pusher moves). Eliminating your opponent's last Regular Tile wins immediately; eliminating your own last Regular Tile is legal and causes an immediate loss.</li>
+        <li><strong>Draw Conditions:</strong> The game ends in a draw on <strong>Stalemate</strong> (no legal Regular Action on your turn) OR after <strong>30 consecutive full turns</strong> (30 Blue + 30 Orange turns) with no placement or capture.</li>
+      </ul>
+
+      <div class="grid-3">
+        <div class="card">
+          <h3>Chain Push &amp; Edge Capture</h3>
+          <svg class="scenario-svg" id="scenEdge" viewBox="0 0 260 150"></svg>
+          <p style="font-size:0.88rem;">A Pusher moves 1 hex into an occupied hex, shifting the entire contiguous line of Regular/Promoted tiles 1 hex. Any tile pushed off the board edge is <strong>captured</strong>.</p>
+        </div>
+
+        <div class="card">
+          <h3>Pusher Collision (Crush)</h3>
+          <svg class="scenario-svg" id="scenCrush" viewBox="0 0 260 150"></svg>
+          <p style="font-size:0.88rem;">Pushers cannot be pushed. If a pushed tile would collide with another Pusher, that tile is <strong>crushed (captured)</strong> and the chain stops—even on a Safe Zone.</p>
+        </div>
+
+        <div class="card">
+          <h3>Center Push-Promotion</h3>
+          <svg class="scenario-svg" id="scenPromo" viewBox="0 0 260 150"></svg>
+          <p style="font-size:0.88rem;">Pushers can never enter the Center Hex, but they <em>can</em> push a Regular Tile into it, immediately promoting it (shown with a gold/white double border).</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. UI ARCHITECTURE, MODALS & ANIMATIONS -->
+    <section id="ui">
+      <h2>4. UI Architecture, Modals &amp; Animations</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Main Game Screen</h3>
+          <ul>
+            <li><strong>Initial Load:</strong> Opens directly with the <strong>New Game modal</strong> overlaid on the board.</li>
+            <li><strong>Ambient Turn Glow:</strong> Subtle pulsing blue radial gradient under the board on Blue's turn; pulsing orange radial gradient on Orange's turn.</li>
+            <li><strong>Left Vertical Sidebar Pill:</strong> New Game (<code>+</code>), Resign (red flag), Rules (blue scroll), Settings (gear), vertical <code>HEXCHESS</code> gradient title, and short Game ID (e.g., <code>#3HKK</code>).</li>
+            <li><strong>Player Benches (Left &amp; Right):</strong> 4 Regular Tile slots + divider + 2 Pusher Tile slots. Regular slots show <strong>3 distinct states</strong>:
+              <ul>
+                <li><em>Available on bench:</em> Full bright colored hex.</li>
+                <li><em>Deployed on board:</em> Empty dark outlined hex.</li>
+                <li><em>Captured:</em> Smaller dim colored hex with a subtle red <code>&times;</code>.</li>
+              </ul>
+            </li>
+            <li><strong>Bottom Status Pill:</strong> Displays active player and current sub-phase (e.g., <em>Blue's Turn</em>, plus an indicator when Step 1 Pusher has already been used).</li>
+            <li><strong>Action-First Disambiguation:</strong> Clicking an adjacent friendly piece while a Pusher is selected executes the push. Deselect by clicking the Pusher again, clicking a non-target hex, or right-clicking.</li>
+            <li><strong>No Undo:</strong> Moves are final once executed; no Undo button is provided or allowed.</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>Modals</h3>
+          <table>
+            <thead>
+              <tr><th>Modal</th><th>Purpose &amp; Controls</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>New Game</strong></td><td>Shown on initial page load and via sidebar <code>+</code>. Select mode (2P Hot Seat, Player vs. AI, AI vs. AI), AI tier (for PvAI/AIvAI; AIvAI pits the selected tier against itself), and <strong>Start Game</strong>. <em>Blue always goes first; in PvAI human is randomly assigned Blue or Orange.</em></td></tr>
+              <tr><td><strong>Rules</strong></td><td>Clean quick-reference of turn flow, piece movement, safe zones, and pushing.</td></tr>
+              <tr><td><strong>Concession</strong></td><td>Triggered by the red flag icon; confirms resignation and records outcome.</td></tr>
+              <tr><td><strong>Settings</strong></td><td>Toggle cubic coordinate overlay, animation speed, single AI move speed setting, and default <code>records/</code> folder.</td></tr>
+              <tr><td><strong>Game Over</strong></td><td>Displays Winner/Draw, turn count, <strong>Save Record</strong> button, and <strong>New Game</strong>.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top: 20px;">
+        <h3>Smooth Piece Animations</h3>
+        <p>All board state transitions must be smoothly animated rather than snapping instantaneously:</p>
+        <ul>
+          <li><strong>Sliding Movement:</strong> Regular, Promoted, and Pusher tiles glide smoothly along the pixel vector from their origin hex to their destination hex (e.g., ~220–280ms ease-out).</li>
+          <li><strong>Bench Placement:</strong> Pieces placed from a player's bench animate smoothly into the target hex with a subtle scale-in/pop effect.</li>
+          <li><strong>Synchronized Chain Push:</strong> When a Pusher pushes a line of tiles, the Pusher and every pushed tile slide in unison by 1 hex in the push direction.</li>
+          <li><strong>Edge Fall ("Spiral into Darkness"):</strong> Any piece pushed off the edge of the board slides past the rim and then <strong>spirals downward into darkness</strong> (combined rotation + scale-down to 0 + fade-out over ~450ms) before being marked captured on its bench.</li>
+          <li><strong>Crush &amp; Capture:</strong> Captured or crushed pieces play a brief impact/fade-out animation before disappearing; a Regular Tile promoted on the Center Hex animates its gold/white inner ring fading/pulsing in.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 5. AI PLAYERS -->
+    <section id="ai">
+      <h2>5. AI Architecture &amp; Lookahead Feasibility</h2>
+      <p>
+        Every AI agent implements a single stateless, ML-ready interface that consumes <strong>only the 42-element compact board state</strong> (which already encodes <code>turnPhase</code>) and outputs one atomic action:
+      </p>
+      <pre><code>chooseAction(compactState, agentType) &rarr; Action  // SKIP_PUSHER | PLACE_PUSHER | MOVE_PUSHER | PLACE_REGULAR | MOVE_REGULAR</code></pre>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>Agent Tiers</h3>
+          <ul>
+            <li><strong>Random Bot:</strong> Selects uniformly from all legal actions in the current phase. Ideal for sanity testing and baseline dataset generation.</li>
+            <li><strong>Heuristic + Alpha-Beta Bot (2-Turn / 4-Ply Lookahead):</strong> Evaluates positions using:
+              <ol>
+                <li><strong>Material &amp; Eliminations:</strong> Highest priority to pushing enemies off the board, crushing them against Pushers, or capturing with Regular/Promoted tiles.</li>
+                <li><strong>Danger Avoidance:</strong> Penalizes deploying or moving onto hexes vulnerable to immediate capture or 1-step push-off/crush (automatically reinforced by 4-ply lookahead).</li>
+                <li><strong>Promotion &amp; Safe Zones:</strong> Rewards promoting on the Center Hex and occupying Safe Zone hexes.</li>
+              </ol>
+            </li>
+            <li><strong>Future ML / Neural Agent:</strong> Drop-in replacement using the exact same 42-element input vector and atomic action space, trained on saved <code>records/*.json</code> games.</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>Branching Factor &amp; Lookahead</h3>
+          <p style="font-size:0.9rem;">Splitting each turn into 2 atomic plies (Pusher &rarr; Regular) keeps the branching factor at <code>b &approx; 20&ndash;30</code> per ply (<code>~400&ndash;800</code> per full turn). With Alpha-Beta pruning + move ordering (captures/crushes first), effective branching drops to <code>b<sub>eff</sub> &approx; 5&ndash;6</code>:</p>
+          <table>
+            <thead>
+              <tr><th>Lookahead</th><th>Plies</th><th>Est. Time (JS)</th><th>Role</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>1 Full Turn</strong></td><td>2</td><td>&lt; 2 ms</td><td>Finds all immediate pushes, crushes, captures &amp; promotions.</td></tr>
+              <tr><td><strong>2 Full Turns</strong></td><td>4</td><td>20&ndash;60 ms</td><td><strong>Target default.</strong> Sees opponent's reply (danger avoidance).</td></tr>
+              <tr><td><strong>3 Full Turns</strong></td><td>6</td><td>0.5&ndash;1.5 s</td><td>Optional "Hard" mode with iterative deepening / time cap.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. MINIMAL STATE ENCODING & GAME RECORDS -->
+    <section id="records">
+      <h2>6. Minimal State Encoding &amp; Game Records</h2>
+      <p>
+        Every move in the game record includes both a human-readable action description <strong>and</strong> a minimal canonical state encoding that contains 100% of the information needed to render the board, both benches (including captured slots), and the active turn/phase—or to feed directly into an ML model.
+      </p>
+
+      <div class="card" style="margin-bottom: 20px;">
+        <h3>Minimal 42-Element State Encoding (123 Bits / 16 Bytes Packed)</h3>
+        <p>
+          Each of the 37 hexes (in fixed canonical cubic order, index <code>0..36</code>) has <strong>exactly 8 possible states (3 bits)</strong>:
+        </p>
+        <table>
+          <thead>
+            <tr><th>Code</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Hex State</strong></td><td>Empty</td><td>Blue Reg</td><td>Blue Promo</td><td>Blue Push</td><td>Orange Reg</td><td>Orange Promo</td><td>Orange Push</td><td>Neutral Push</td></tr>
+          </tbody>
+        </table>
+        <p style="margin-top: 10px;">
+          Appending just <strong>5 small integers</strong> completes the entire game state:
+        </p>
+        <ul>
+          <li><strong>Bench Counts (4 integers):</strong> <code>[bReg (0..4), bPush (0..2), oReg (0..4), oPush (0..2)]</code>. Captured counts are derived automatically (<code>capturedBlue = 4 - bReg - blueOnBoard</code>), so no extra bits are needed!</li>
+          <li><strong>Turn &amp; Phase (1 integer, 2 bits):</strong> <code>0</code> = Blue (Pusher Optional), <code>1</code> = Blue (Regular Only), <code>2</code> = Orange (Pusher Optional), <code>3</code> = Orange (Regular Only).</li>
+          <li><strong>Total Size:</strong> <strong>42 integers</strong> (<code>37 + 4 + 1</code>), serializable as a compact 42-element array <code>[7,0,0,...,7, 4,2,4,2, 0]</code> or a 44-char string <code>"700...007|4242|0"</code>. Bit-packed, the entire game state fits in <strong>123 bits (16 bytes)</strong>.</li>
+        </ul>
+      </div>
+
+      <h3>Saving to the <code>records/</code> Folder</h3>
+      <ul>
+        <li><strong>Primary (File System Access API):</strong> In Chrome/Edge, the user picks the local <code>records/</code> folder once (in Settings or Game Over). After that, clicking <strong>Save Record</strong> (or enabling Auto-Save) writes <code>hexchess_YYYYMMDD_HHMMSS_&lt;id&gt;.json</code> directly into <code>records/</code>.</li>
+        <li><strong>Fallback (All Browsers):</strong> Downloads the JSON file directly with the same structured filename.</li>
+      </ul>
+
+      <h3>Example JSON Schema</h3>
+<pre><code>{
+  "schemaVersion": "1.0.0",
+  "gameId": "3HKK",
+  "timestamp": "2026-11-23T21:15:00Z",
+  "mode": "pvai",
+  "players": {
+    "blue": { "type": "human" },
+    "orange": { "type": "ai", "agent": "heuristic-v1" }
+  },
+  "result": {
+    "winner": "blue",
+    "reason": "elimination",
+    "totalTurns": 18
+  },
+  "initialState": "0000000000000007000007000000000000000|4242|0",
+  "history": [
+    {
+      "turn": 1,
+      "player": "blue",
+      "phase": "REGULAR",
+      "action": { "type": "PLACE_REGULAR", "to": [-2, -1, 3] },
+      "events": [],
+      "state": "0000100000000007000007000000000000000|3242|2"
+    },
+    {
+      "turn": 2,
+      "player": "orange",
+      "phase": "PUSHER",
+      "action": { "type": "MOVE_PUSHER", "from": [0, 3, -3], "to": [0, 2, -2], "pusherOwner": "neutral" },
+      "events": [],
+      "state": "0000100000000007000070000000000000000|3242|3"
+    }
+  ]
+}</code></pre>
+    </section>
+
+    <!-- 7. MODULAR FILE STRUCTURE -->
+    <section id="architecture">
+      <h2>7. Modular File Structure</h2>
+      <div class="card">
+        <p>The playable web application will use a clean, zero-build modular structure:</p>
+<pre><code>HexChess/
+├── index.html      # Main page shell, SVG board container, benches, sidebar &amp; modals
+├── styles.css      # Dark navy theme, pulsing Blue/Orange turn glow, piece &amp; spiral animations
+├── game.js         # Pure HexChess rules engine, cubic math, 42-element state codec, DOM renderer &amp; record saver
+├── ai.js           # Stateless AI agents (Random, Heuristic/Minimax) implementing chooseTurn(state)
+└── records/        # Saved JSON game records for replay &amp; ML training</code></pre>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Flat-top hex math (radius 3 => 37 hexes, 4-5-6-7-6-5-4 vertical columns)
+    const HEX_SIZE = 34;
+    const SQRT3 = Math.sqrt(3);
+
+    function cubeToPixel(q, r, size = HEX_SIZE) {
+      const x = size * (1.5 * q);
+      const y = size * ((SQRT3 / 2) * q + SQRT3 * r);
+      return { x, y };
+    }
+
+    function hexPoints(cx, cy, size = HEX_SIZE) {
+      const pts = [];
+      for (let i = 0; i < 6; i++) {
+        const angle = (Math.PI / 180) * (60 * i);
+        pts.push(`${(cx + size * Math.cos(angle)).toFixed(1)},${(cy + size * Math.sin(angle)).toFixed(1)}`);
+      }
+      return pts.join(' ');
+    }
+
+    // Build canonical 0..36 list: column q = -3..+3, top-to-bottom r ascending
+    const CANONICAL_HEXES = [];
+    for (let q = -3; q <= 3; q++) {
+      for (let r = -3; r <= 3; r++) {
+        const s = -q - r;
+        if (Math.abs(s) <= 3) CANONICAL_HEXES.push({ q, r, s, idx: CANONICAL_HEXES.length });
+      }
+    }
+
+    function hexZoneColor(q, r, s) {
+      const d = Math.max(Math.abs(q), Math.abs(r), Math.abs(s));
+      if (d === 0) return '#f7e600';
+      if (d === 1) return '#aee2ee';
+      if (d === 2) return '#f4f6f9';
+      return '#eae0a8';
+    }
+
+    function createSvgEl(tag, attrs = {}) {
+      const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+      for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+      return el;
+    }
+
+    function drawPiece(parent, cx, cy, kind, owner, promoted = false, size = HEX_SIZE * 0.74) {
+      const g = createSvgEl('g');
+      let fill = '#b8bec8';
+      if (kind === 'regular') fill = owner === 'blue' ? '#3b82f6' : '#f59e0b';
+
+      g.appendChild(createSvgEl('polygon', {
+        points: hexPoints(cx, cy, size),
+        fill,
+        stroke: '#0f172a',
+        'stroke-width': '2.2'
+      }));
+
+      if (promoted) {
+        g.appendChild(createSvgEl('polygon', {
+          points: hexPoints(cx, cy, size * 0.78),
+          fill: 'none',
+          stroke: '#fef08a',
+          'stroke-width': '2.6'
+        }));
+      }
+
+      if (kind === 'regular') {
+        g.appendChild(createSvgEl('circle', {
+          cx, cy, r: size * 0.28,
+          fill: owner === 'blue' ? '#93c5fd' : '#b45309'
+        }));
+      } else if (kind === 'pusher' && owner !== 'neutral') {
+        g.appendChild(createSvgEl('circle', {
+          cx, cy, r: size * 0.36,
+          fill: owner === 'blue' ? '#3b82f6' : '#f59e0b',
+          stroke: '#0f172a',
+          'stroke-width': '1.5'
+        }));
+      }
+      parent.appendChild(g);
+    }
+
+    let currentView = 'coords';
+
+    function renderMainBoard() {
+      const svg = document.getElementById('mainBoardSvg');
+      svg.innerHTML = '';
+
+      for (const { q, r, s, idx } of CANONICAL_HEXES) {
+        const { x, y } = cubeToPixel(q, r);
+        const d = Math.max(Math.abs(q), Math.abs(r), Math.abs(s));
+
+        svg.appendChild(createSvgEl('polygon', {
+          points: hexPoints(x, y, HEX_SIZE - 1),
+          fill: hexZoneColor(q, r, s),
+          stroke: '#1e293b',
+          'stroke-width': '2'
+        }));
+
+        if (d === 1 && currentView !== 'coords' && currentView !== 'index') {
+          const shield = createSvgEl('text', {
+            x, y: y + 5,
+            'text-anchor': 'middle',
+            'font-size': '14',
+            fill: '#9333ea',
+            opacity: '0.35'
+          });
+          shield.textContent = '🛡';
+          svg.appendChild(shield);
+        }
+
+        if (currentView === 'coords' || currentView === 'index') {
+          const txt = createSvgEl('text', {
+            x, y: y + 4,
+            'text-anchor': 'middle',
+            'font-size': currentView === 'index' ? '12' : '10',
+            'font-weight': '600',
+            fill: '#0f172a'
+          });
+          txt.textContent = currentView === 'index' ? String(idx) : `${q},${r},${s}`;
+          svg.appendChild(txt);
+        }
+      }
+
+      if (currentView === 'setup') {
+        // 2 Neutral pushers at top (0,-3,3) [idx 15] and bottom (0,3,-3) [idx 21]
+        const top = cubeToPixel(0, -3);
+        const bot = cubeToPixel(0, 3);
+        drawPiece(svg, top.x, top.y, 'pusher', 'neutral');
+        drawPiece(svg, bot.x, bot.y, 'pusher', 'neutral');
+      } else if (currentView === 'midgame') {
+        const placements = [
+          [0, -3, 'pusher', 'neutral', false],
+          [0, 3, 'pusher', 'neutral', false],
+          [-2, -1, 'regular', 'blue', false],
+          [3, -2, 'regular', 'orange', false],
+          [-1, 1, 'pusher', 'orange', false],
+          [2, -1, 'pusher', 'blue', false],
+          [0, 0, 'regular', 'blue', true]
+        ];
+        for (const [q, r, kind, owner, promo] of placements) {
+          const p = cubeToPixel(q, r);
+          drawPiece(svg, p.x, p.y, kind, owner, promo);
+        }
+      }
+    }
+
+    function setBoardView(view) {
+      currentView = view;
+      document.getElementById('btnViewCoords').classList.toggle('active', view === 'coords');
+      document.getElementById('btnViewIndex').classList.toggle('active', view === 'index');
+      document.getElementById('btnViewSetup').classList.toggle('active', view === 'setup');
+      document.getElementById('btnViewMid').classList.toggle('active', view === 'midgame');
+      renderMainBoard();
+    }
+
+    function setGlow(player) {
+      const glow = document.getElementById('turnGlow');
+      glow.className = 'turn-glow ' + player;
+      document.getElementById('btnGlowBlue').className = 'btn' + (player === 'blue' ? ' active' : '');
+      document.getElementById('btnGlowOrange').className = 'btn' + (player === 'orange' ? ' orange-active' : '');
+      document.getElementById('statusPillText').textContent =
+        player === 'blue'
+          ? "Blue's Turn! (Pusher Optional → Regular Mandatory)"
+          : "Orange's Turn! (Pusher Optional → Regular Mandatory)";
+    }
+
+    // Mini scenario SVGs
+    function drawMiniRow(svgId, hexConfigs, arrowFromX, arrowToX, badgeText) {
+      const svg = document.getElementById(svgId);
+      const sz = 24;
+      const startX = 48;
+      const cy = 78;
+      hexConfigs.forEach((cfg, idx) => {
+        const cx = startX + idx * (sz * SQRT3 + 2);
+        if (!cfg.offboard) {
+          svg.appendChild(createSvgEl('polygon', {
+            points: hexPoints(cx, cy, sz),
+            fill: cfg.bg,
+            stroke: '#1e293b',
+            'stroke-width': '2'
+          }));
+        } else {
+          svg.appendChild(createSvgEl('polygon', {
+            points: hexPoints(cx, cy, sz),
+            fill: 'none',
+            stroke: '#ef4444',
+            'stroke-dasharray': '4 3',
+            'stroke-width': '1.8'
+          }));
+        }
+        if (cfg.piece) {
+          drawPiece(svg, cx, cy, cfg.piece.kind, cfg.piece.owner, cfg.piece.promo, sz * 0.72);
+        }
+        if (cfg.xMark) {
+          const xTxt = createSvgEl('text', {
+            x: cx, y: cy + 7, 'text-anchor': 'middle', 'font-size': '22', 'font-weight': '800', fill: '#ef4444'
+          });
+          xTxt.textContent = '✕';
+          svg.appendChild(xTxt);
+        }
+      });
+
+      // Push arrow above
+      const line = createSvgEl('line', {
+        x1: arrowFromX, y1: 30, x2: arrowToX, y2: 30,
+        stroke: '#60a5fa', 'stroke-width': '2.5'
+      });
+      svg.appendChild(line);
+      const head = createSvgEl('polygon', {
+        points: `${arrowToX},30 ${arrowToX - 8},25 ${arrowToX - 8},35`,
+        fill: '#60a5fa'
+      });
+      svg.appendChild(head);
+
+      const lbl = createSvgEl('text', {
+        x: 130, y: 132, 'text-anchor': 'middle', 'font-size': '11', fill: '#94a3b8'
+      });
+      lbl.textContent = badgeText;
+      svg.appendChild(lbl);
+    }
+
+    renderMainBoard();
+
+    drawMiniRow('scenEdge', [
+      { bg: '#f4f6f9', piece: { kind: 'pusher', owner: 'blue' } },
+      { bg: '#f4f6f9', piece: { kind: 'regular', owner: 'blue' } },
+      { bg: '#eae0a8', piece: { kind: 'regular', owner: 'orange' } },
+      { offboard: true, xMark: true }
+    ], 55, 195, 'Pushed off edge → Captured');
+
+    drawMiniRow('scenCrush', [
+      { bg: '#f4f6f9', piece: { kind: 'pusher', owner: 'blue' } },
+      { bg: '#aee2ee', piece: { kind: 'regular', owner: 'orange' }, xMark: true },
+      { bg: '#aee2ee', piece: { kind: 'pusher', owner: 'neutral' } }
+    ], 55, 130, 'Hits Pusher → Crushed & stops');
+
+    drawMiniRow('scenPromo', [
+      { bg: '#f4f6f9', piece: { kind: 'pusher', owner: 'blue' } },
+      { bg: '#aee2ee', piece: { kind: 'regular', owner: 'blue' } },
+      { bg: '#f7e600', piece: { kind: 'regular', owner: 'blue', promo: true } }
+    ], 55, 145, 'Pushed into Center → Promoted');
+  </script>
+</body>
+</html>

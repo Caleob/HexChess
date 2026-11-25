@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HEXCHESS</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app" class="app-shell">
+    <!-- Far Left Vertical Sidebar Pill -->
+    <aside class="sidebar-pill" aria-label="Navigation">
+      <div class="sidebar-actions">
+        <button id="btnResign" class="icon-btn icon-flag" title="Resign / Forfeit" aria-label="Resign">
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
+            <line x1="4" y1="22" x2="4" y2="15"></line>
+          </svg>
+        </button>
+        <button id="btnRules" class="icon-btn icon-scroll" title="Game Rules" aria-label="Game Rules">
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="8" y1="13" x2="16" y2="13"></line>
+            <line x1="8" y1="17" x2="13" y2="17"></line>
+          </svg>
+        </button>
+        <button id="btnSettings" class="icon-btn icon-gear" title="Settings" aria-label="Settings">
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </button>
+        <button id="btnMusicQuick" class="icon-btn icon-audio" title="Toggle Background Music" aria-label="Toggle Background Music">
+          <svg id="iconMusicOn" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18V5l12-2v13"></path>
+            <circle cx="6" cy="18" r="3"></circle>
+            <circle cx="18" cy="16" r="3"></circle>
+          </svg>
+          <svg id="iconMusicOff" class="hidden" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18V5l12-2v13"></path>
+            <circle cx="6" cy="18" r="3"></circle>
+            <circle cx="18" cy="16" r="3"></circle>
+            <line x1="2" y1="2" x2="22" y2="22"></line>
+          </svg>
+        </button>
+        <button id="btnSoundQuick" class="icon-btn icon-audio" title="Toggle Sound Effects" aria-label="Toggle Sound Effects">
+          <svg id="iconSoundOn" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+          </svg>
+          <svg id="iconSoundOff" class="hidden" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <line x1="23" y1="9" x2="17" y2="15"></line>
+            <line x1="17" y1="9" x2="23" y2="15"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="sidebar-brand">
+        <span class="vertical-title">HEXCHESS</span>
+      </div>
+
+      <div class="sidebar-footer">
+        <span id="gameCodeLabel" class="game-code"># ----</span>
+      </div>
+    </aside>
+
+    <!-- Main Arena: Left Bench + Center Board + Right Bench -->
+    <main class="arena">
+      <!-- Left Bench (Blue) -->
+      <section class="bench bench-blue" aria-label="Blue Player Bench">
+        <div class="bench-player-tag" id="bluePlayerTag">BLUE</div>
+        <svg id="blueBenchSvg" class="bench-svg" viewBox="0 0 80 390"></svg>
+      </section>
+
+      <!-- Center Hexagonal Board -->
+      <section class="board-container">
+        <div id="ambientGlow" class="ambient-glow blue"></div>
+        <svg id="boardSvg" class="board-svg" viewBox="-238 -238 476 476" aria-label="HexChess 37-Hex Game Board">
+          <defs>
+            <filter id="glowBlue" x="-40%" y="-40%" width="180%" height="180%">
+              <feGaussianBlur stdDeviation="5" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+            <filter id="glowOrange" x="-40%" y="-40%" width="180%" height="180%">
+              <feGaussianBlur stdDeviation="5" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+            <filter id="pieceShadow" x="-25%" y="-25%" width="150%" height="150%">
+              <feDropShadow dx="0" dy="2" stdDeviation="2.2" flood-color="#020617" flood-opacity="0.55" />
+            </filter>
+          </defs>
+          <g id="boardRotateGroup">
+            <g id="layerHexes"></g>
+            <g id="layerCoords"></g>
+            <g id="layerHighlights"></g>
+            <g id="layerPieces"></g>
+            <g id="layerEffects"></g>
+            <g id="layerTargets"></g>
+          </g>
+        </svg>
+      </section>
+
+      <!-- Right Bench (Orange) -->
+      <section class="bench bench-orange" aria-label="Orange Player Bench">
+        <div class="bench-player-tag" id="orangePlayerTag">ORANGE</div>
+        <svg id="orangeBenchSvg" class="bench-svg" viewBox="0 0 80 390"></svg>
+      </section>
+    </main>
+
+    <!-- Bottom Status / Replay Bar -->
+    <footer class="bottom-bar">
+      <div id="statusPill" class="status-pill blue-turn">
+        <svg class="clock-icon" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"></circle>
+          <polyline points="12 7 12 12 15.5 14"></polyline>
+        </svg>
+        <span id="statusMainText">Blue's Turn!</span>
+        <span id="statusSubText" class="status-sub">Pusher or Standard Move</span>
+      </div>
+
+      <div id="replayBar" class="replay-bar hidden" aria-label="Replay Controls">
+        <div class="replay-controls">
+          <button id="btnReplayStart" type="button" class="replay-btn" title="Start (Home)" aria-label="First position">&#x23EE;</button>
+          <button id="btnReplayPrev" type="button" class="replay-btn" title="Previous Ply (Left Arrow)" aria-label="Previous ply">&#x25C0;</button>
+          <button id="btnReplayPlay" type="button" class="replay-btn replay-play" title="Play / Pause (Space)" aria-label="Play or pause">&#x25B6;</button>
+          <button id="btnReplayNext" type="button" class="replay-btn" title="Next Ply (Right Arrow)" aria-label="Next ply">&#x25B6;</button>
+          <button id="btnReplayEnd" type="button" class="replay-btn" title="End (End)" aria-label="Final position">&#x23ED;</button>
+        </div>
+        <input id="replaySlider" class="replay-slider" type="range" min="0" max="0" value="0" aria-label="Replay ply scrubber" />
+        <div class="replay-meta">
+          <span id="replayStepLabel" class="replay-step">0 / 0</span>
+          <span id="replayMoveInfo" class="replay-move-info">Initial Position</span>
+        </div>
+        <button id="btnExitReplay" type="button" class="btn-secondary btn-sm">Exit Replay</button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- 1. New Game Modal -->
+  <div id="modalNewGame" class="modal-backdrop open" role="dialog" aria-modal="true" aria-labelledby="newGameTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h2 id="newGameTitle" class="modal-brand">HEXCHESS</h2>
+          <p class="modal-subtitle">Tactical Pushing &amp; Promotion Strategy</p>
+        </div>
+        <button id="btnCloseNewGame" class="modal-close hidden" aria-label="Close">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <label class="field-label">Select Game Mode</label>
+        <div class="mode-grid" id="modeSelector">
+          <button type="button" class="mode-card selected" data-mode="pvai">
+            <span class="mode-title">Player vs. AI</span>
+            <span class="mode-desc">Random color assignment against computer</span>
+          </button>
+          <button type="button" class="mode-card" data-mode="hotseat">
+            <span class="mode-title">2P Hot Seat</span>
+            <span class="mode-desc">Two humans share the board locally</span>
+          </button>
+          <button type="button" class="mode-card" data-mode="aivai">
+            <span class="mode-title">AI vs. AI</span>
+            <span class="mode-desc">Watch computer players battle</span>
+          </button>
+        </div>
+
+        <div id="aiTierGroup" class="form-section">
+          <label class="field-label">AI Intelligence Tier</label>
+          <div class="tier-grid" id="tierSelector">
+            <button type="button" class="tier-btn" data-tier="triangle">
+              <svg class="tier-icon" viewBox="0 0 28 28" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
+                <polygon points="14,4 25,23 3,23"></polygon>
+              </svg>
+              <strong>Triangle</strong>
+              <span>Casual</span>
+            </button>
+            <button type="button" class="tier-btn selected" data-tier="square">
+              <svg class="tier-icon" viewBox="0 0 28 28" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
+                <rect x="5" y="5" width="18" height="18" rx="1.5"></rect>
+              </svg>
+              <strong>Square</strong>
+              <span>Tactical</span>
+            </button>
+            <button type="button" class="tier-btn" data-tier="pentagon">
+              <svg class="tier-icon" viewBox="0 0 28 28" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
+                <polygon points="14,3 25,11 21,24 7,24 3,11"></polygon>
+              </svg>
+              <strong>Pentagon</strong>
+              <span>Expert</span>
+            </button>
+            <button type="button" class="tier-btn" data-tier="hexagon">
+              <svg class="tier-icon" viewBox="0 0 28 28" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
+                <polygon points="14,3 24,8.5 24,19.5 14,25 4,19.5 4,8.5"></polygon>
+              </svg>
+              <strong>Hexagon</strong>
+              <span>Master</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="info-note">
+          <strong>Blue always moves first.</strong> In Player vs. AI, you are randomly assigned <span class="txt-blue">Blue</span> or <span class="txt-orange">Orange</span> when the match begins. Moves are final (no Undo).
+        </div>
+        <div id="replayErrorMsg" class="replay-error hidden"></div>
+      </div>
+
+      <div class="modal-footer split">
+        <button id="btnReplaySaved" type="button" class="btn-secondary">Replay Saved Game</button>
+        <input id="replayFileInput" type="file" accept=".txt,text/plain" class="hidden" />
+        <button id="btnStartGame" class="btn-primary btn-large">Start Game</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Rules Modal -->
+  <div id="modalRules" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
+    <div class="modal-card modal-wide">
+      <div class="modal-header">
+        <div>
+          <h2 id="rulesTitle">HexChess — Quick Rules</h2>
+          <p class="modal-subtitle">Eliminate all 4 of your opponent's Regular/Promoted Tiles to win!</p>
+        </div>
+        <button class="modal-close" data-close="modalRules" aria-label="Close">&times;</button>
+      </div>
+
+      <div class="modal-body rules-scroll">
+        <div class="rules-grid">
+          <div class="rule-box">
+            <h3>1. Turn Structure (2 Steps)</h3>
+            <ul>
+              <li><strong>Step 1 — Pusher Action (Optional):</strong> Place a Pusher from your bench onto any empty non-center hex, <em>OR</em> move your Pusher or either <strong>Neutral Gray Pusher</strong> 1 hex.</li>
+              <li><strong>Step 2 — Regular Action (Mandatory):</strong> Place a Regular Tile from your bench onto an empty <strong>Outer Rim</strong> hex, <em>OR</em> move a Regular/Promoted Tile on the board.</li>
+              <li><em>Tip:</em> Click any Regular Tile directly at the start of your turn to skip Step 1 automatically!</li>
+            </ul>
+          </div>
+
+          <div class="rule-box">
+            <h3>2. Board Zones</h3>
+            <ul>
+              <li><span class="zone-dot center"></span> <strong>Center Hex (Yellow):</strong> Regular Tiles entering here (by move or push) immediately <strong>Promote</strong>! Pushers can never enter Center. Not a safe zone.</li>
+              <li><span class="zone-dot safe"></span> <strong>Safe Zone Ring (Cyan Shields):</strong> Pieces here <strong>cannot be captured by normal movement</strong>, but <em>can</em> be pushed off or crushed by Pushers!</li>
+              <li><span class="zone-dot rim"></span> <strong>Outer Rim (Sand):</strong> Bench Regular Tiles deploy onto empty Outer Rim hexes.</li>
+            </ul>
+          </div>
+
+          <div class="rule-box">
+            <h3>3. Piece Movement</h3>
+            <ul>
+              <li><strong>Regular Tile:</strong> Moves 1 hex in any direction to an empty hex or captures an unprotected enemy Regular/Promoted tile.</li>
+              <li><strong>Promoted Tile (Gold Ring):</strong> Slides any number of unobstructed hexes in a straight line (Queen-like along hex axes).</li>
+              <li><strong>Pusher Tile (Gray):</strong> Moves 1 hex. Can push a contiguous straight line of Regular/Promoted tiles (friendly or enemy) 1 hex!</li>
+            </ul>
+          </div>
+
+          <div class="rule-box">
+            <h3>4. Pushing, Crushing &amp; Victory</h3>
+            <ul>
+              <li><strong>Edge Push-Off:</strong> Any Regular/Promoted tile pushed off the board edge spirals into darkness and is <strong>captured</strong>!</li>
+              <li><strong>Pusher Crush:</strong> Pushers cannot be pushed. Moving a Pusher directly into an adjacent Pusher is illegal, <em>but</em> pushing a line of tiles into another Pusher <strong>crushes (captures)</strong> the end tile against that stationary Pusher!</li>
+              <li><strong>Draws:</strong> Stalemate (no legal Regular Action) or 30 full turns without a placement or capture.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" data-close="modalRules">Got It</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Concession (Resign) Modal -->
+  <div id="modalResign" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="resignTitle">
+    <div class="modal-card modal-compact">
+      <div class="modal-header">
+        <h2 id="resignTitle">Forfeit Current Match?</h2>
+        <button class="modal-close" data-close="modalResign" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p id="resignPromptText">Are you sure you want to resign? This will end the game immediately and record a concession.</p>
+      </div>
+      <div class="modal-footer split">
+        <button class="btn-secondary" data-close="modalResign">Cancel</button>
+        <button id="btnConfirmResign" class="btn-danger">Resign Game</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Settings Modal -->
+  <div id="modalSettings" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h2 id="settingsTitle">Settings</h2>
+          <p class="modal-subtitle">Board overlays, speed, audio &amp; game reports</p>
+        </div>
+        <button class="modal-close" data-close="modalSettings" aria-label="Close">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="setting-row">
+          <div>
+            <div class="setting-title">Board Coordinate Overlay</div>
+            <div class="setting-desc">Display cubic coordinates (q,r,s) or canonical index (0–36)</div>
+          </div>
+          <select id="selCoordOverlay" class="select-input">
+            <option value="none">Hidden</option>
+            <option value="cubic">Cubic (q,r,s)</option>
+            <option value="index">Index (0–36)</option>
+          </select>
+        </div>
+
+        <div class="setting-row">
+          <div>
+            <div class="setting-title">Animation Speed</div>
+            <div class="setting-desc">Controls piece glide, chain push &amp; edge spiral speed</div>
+          </div>
+          <select id="selAnimSpeed" class="select-input">
+            <option value="normal" selected>Normal</option>
+            <option value="fast">Fast</option>
+            <option value="instant">Turbo (Minimal)</option>
+          </select>
+        </div>
+
+        <div class="setting-row">
+          <div>
+            <div class="setting-title">AI Move Speed</div>
+            <div class="setting-desc">Pacing delay between AI steps in PvAI and AIvAI</div>
+          </div>
+          <select id="selAiSpeed" class="select-input">
+            <option value="relaxed">Relaxed (750 ms)</option>
+            <option value="normal" selected>Normal (420 ms)</option>
+            <option value="fast">Fast (160 ms)</option>
+            <option value="blitz">Blitz (40 ms)</option>
+          </select>
+        </div>
+
+        <div class="setting-row">
+          <div>
+            <div class="setting-title">Sound Effects</div>
+            <div class="setting-desc">Subtle synthesized tactile audio on moves, pushes &amp; captures</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="chkSound" checked />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-row">
+          <div>
+            <div class="setting-title">Background Music</div>
+            <div class="setting-desc">Loopable classical-inspired synthesized soundtrack</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="chkMusic" checked />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-row">
+          <div>
+            <div class="setting-title">Music Track</div>
+            <div class="setting-desc">Choose one of three classical-inspired compositions</div>
+          </div>
+          <select id="selMusicTrack" class="select-input">
+            <option value="baroque" selected>Baroque Prelude (C Minor)</option>
+            <option value="nocturne">Nocturne in D Minor</option>
+            <option value="minuet">Royal Minuet (G Major)</option>
+          </select>
+        </div>
+
+        <div class="setting-row">
+          <div>
+            <div class="setting-title">Auto-Save Completed Games</div>
+            <div class="setting-desc">Automatically write .txt match report when a game finishes (if folder linked)</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="chkAutoSave" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-row folder-row">
+          <div>
+            <div class="setting-title">Default <code>records/</code> Folder</div>
+            <div id="folderStatusText" class="setting-desc">No folder linked yet (will download .txt report as fallback)</div>
+          </div>
+          <button id="btnPickFolder" type="button" class="btn-secondary btn-sm">Choose Folder</button>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-primary" data-close="modalSettings">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Game Over Modal -->
+  <div id="modalGameOver" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="gameOverTitle">
+    <div class="modal-card modal-gameover">
+      <div class="modal-header">
+        <div>
+          <div id="gameOverBadge" class="winner-badge">MATCH COMPLETE</div>
+          <h2 id="gameOverTitle">Blue Wins!</h2>
+          <p id="gameOverReason" class="modal-subtitle">All opponent Regular Tiles eliminated</p>
+        </div>
+        <button class="modal-close" data-close="modalGameOver" aria-label="Inspect Board">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="stats-strip">
+          <div class="stat-item">
+            <span class="stat-val" id="statTurns">0</span>
+            <span class="stat-lbl">Total Turns</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-val" id="statPlies">0</span>
+            <span class="stat-lbl">Actions</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-val" id="statGameId">#----</span>
+            <span class="stat-lbl">Game ID</span>
+          </div>
+        </div>
+        <div class="accuracy-strip" id="accuracyStrip">
+          <div class="acc-item acc-blue">
+            <span class="acc-label">Blue Accuracy</span>
+            <span class="acc-val" id="statBlueAcc">--%</span>
+          </div>
+          <div class="acc-item acc-orange">
+            <span class="acc-label">Orange Accuracy</span>
+            <span class="acc-val" id="statOrangeAcc">--%</span>
+          </div>
+        </div>
+        <div id="saveFeedback" class="save-feedback hidden"></div>
+      </div>
+
+      <div class="modal-footer split">
+        <button id="btnSaveRecord" type="button" class="btn-secondary">
+          Save Report (.txt)
+        </button>
+        <button id="btnPlayAgain" type="button" class="btn-primary">
+          New Game
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+  <script src="ai.js"></script>
+</body>
+</html>
